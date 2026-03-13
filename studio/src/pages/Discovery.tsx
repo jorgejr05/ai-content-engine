@@ -54,13 +54,13 @@ export default function Discovery() {
   };
 
   const filteredSources = sources.filter(s => 
-    s.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.source?.toLowerCase().includes(searchTerm.toLowerCase())
+    (s.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (s.source || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredInsights = insights.filter(i => 
-    i.business_insight?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    i.content_sources?.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    (i.business_insight || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (i.content_sources?.title || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
