@@ -1,5 +1,6 @@
-import { Routes, Route, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Sparkles, Target, Zap, FileText, Clock, MessageSquare, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Sparkles, Target, Zap, FileText, Clock, MessageSquare, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from './contexts/AuthProvider';
 import Dashboard from './pages/Dashboard';
 import Posts from './pages/Posts';
@@ -12,6 +13,13 @@ import Login from './pages/Login';
 
 function App() {
   const { user, loading, signOut } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  // Close menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location]);
 
   if (loading) {
     return (
@@ -32,8 +40,33 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* Mobile Top Header */}
+      <div className="mobile-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+          <Sparkles size={20} color="var(--accent-color)" />
+          <h2 style={{ fontSize: '1rem', margin: 0 }}>Studio</h2>
+        </div>
+        <button 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          onClick={() => setIsMobileMenuOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', 
+            backdropFilter: 'blur(4px)', zIndex: 45
+          }}
+        />
+      )}
+
       {/* Sidebar Navigation */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
         <div style={{ marginBottom: '2.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
             <div style={{ 

@@ -201,7 +201,7 @@ export default function AgentChat() {
   };
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 8rem)', maxWidth: '1000px', margin: '0 auto' }}>
+    <div className="animate-fade-in chat-page-container">
       <header style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <div style={{ 
           width: '50px', height: '50px', borderRadius: '16px', 
@@ -243,7 +243,7 @@ export default function AgentChat() {
             )}
 
             <div style={{
-              maxWidth: '80%',
+              maxWidth: '85%',
               padding: '1rem 1.25rem',
               borderRadius: msg.role === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
               background: msg.role === 'user' 
