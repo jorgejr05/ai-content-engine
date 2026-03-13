@@ -8,8 +8,7 @@ import { useAuth } from './contexts/AuthProvider';
 import { useNotifications } from './contexts/NotificationContext';
 import Dashboard from './pages/Dashboard';
 import Posts from './pages/Posts';
-import Sources from './pages/Sources';
-import Insights from './pages/Insights';
+import Discovery from './pages/Discovery';
 import Blog from './pages/Blog';
 import AgentChat from './pages/AgentChat';
 import Profile from './pages/Profile';
@@ -157,12 +156,12 @@ function App() {
                 <LayoutDashboard size={18} /> Visão Geral
               </NavLink>
 
-              <NavLink to="/agent" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                <MessageSquare size={18} /> Agente IA
+              <NavLink to="/discovery" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                <Search size={18} /> Discovery (Trends)
               </NavLink>
 
-              <NavLink to="/insights" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                <Zap size={18} /> Insights
+              <NavLink to="/agent" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                <MessageSquare size={18} /> Agente IA
               </NavLink>
             </div>
           </div>
@@ -178,10 +177,6 @@ function App() {
 
               <NavLink to="/posts" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
                 <Clock size={18} /> Flywheel Feed
-              </NavLink>
-              
-              <NavLink to="/coletas" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                <Target size={18} /> Radar News
               </NavLink>
             </div>
           </div>
@@ -216,8 +211,7 @@ function App() {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/coletas" element={<Sources />} />
-          <Route path="/insights" element={<Insights />} />
+          <Route path="/discovery" element={<Discovery />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/posts" element={<Posts />} />
           <Route path="/agent" element={<AgentChat />} />
