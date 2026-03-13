@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Bot, Loader, Sparkles, Trash2, ThumbsUp, CheckCircle, ChevronLeft, ChevronRight, TrendingUp, Target } from 'lucide-react';
+import { Send, Bot, Loader, Trash2, ThumbsUp, CheckCircle, ChevronLeft, ChevronRight, TrendingUp, Target } from 'lucide-react';
 
 interface Message {
   id: string;
