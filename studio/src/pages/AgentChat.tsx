@@ -40,6 +40,14 @@ export default function AgentChat() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    const pending = localStorage.getItem('pending_generation_topic');
+    if (pending) {
+      localStorage.removeItem('pending_generation_topic');
+      sendToAgent(`Gere conteúdo multicanal com base nisto: ${pending}`);
+    }
+  }, []);
+
   const clearChat = () => {
     // Usando o confirm nativo por enquanto, mas o resultado será via Toast
     if (confirm('Deseja limpar todo o histórico da conversa?')) {
