@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { FormEvent } from 'react';
-import { Send, Bot, User, Search, Zap, FileText, BarChart3, Mic, Square, Loader } from 'lucide-react';
+import { Send, Bot, Search, Zap, FileText, BarChart3, Mic, Square, Loader } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -34,15 +34,7 @@ export default function AgentChat() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const getActionIcon = (action?: string) => {
-    switch (action) {
-      case 'SEARCH': return <Search size={14} />;
-      case 'ANALYZE': return <Zap size={14} />;
-      case 'GENERATE': return <FileText size={14} />;
-      case 'STATUS': return <BarChart3 size={14} />;
-      default: return null;
-    }
-  };
+
 
   const addTypingMessage = useCallback(() => {
     const typingId = 'typing-' + Date.now();
