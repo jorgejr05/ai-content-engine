@@ -8,7 +8,6 @@ export default function Profile() {
   const { user } = useAuth();
   const [displayName, setDisplayName] = useState(user?.user_metadata?.display_name || '');
   const [newEmail, setNewEmail] = useState(user?.email || '');
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -64,7 +63,6 @@ export default function Profile() {
     if (error) showMessage('error', error.message);
     else {
       showMessage('success', 'Senha atualizada com sucesso!');
-      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     }

@@ -1,5 +1,5 @@
 import { Routes, Route, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Sparkles, Target, Zap, FileText, Clock, MessageSquare, LogOut, UserCircle } from 'lucide-react';
+import { LayoutDashboard, Sparkles, Target, Zap, FileText, Clock, MessageSquare, LogOut } from 'lucide-react';
 import { useAuth } from './contexts/AuthProvider';
 import Dashboard from './pages/Dashboard';
 import Posts from './pages/Posts';
