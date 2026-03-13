@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { 
-  Bell, LayoutDashboard, Sparkles, Target, Zap, FileText, 
-  Clock, MessageSquare, LogOut, Menu, X, Trash2 
+  Bell, LayoutDashboard, Sparkles, FileText, 
+  Clock, MessageSquare, LogOut, Menu, X, Trash2, Search 
 } from 'lucide-react';
 import { useAuth } from './contexts/AuthProvider';
 import { useNotifications } from './contexts/NotificationContext';

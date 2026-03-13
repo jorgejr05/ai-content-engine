@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../config/supabase';
 import { 
   Database, Lightbulb, ExternalLink, Zap, 
-  Search, Filter, Calendar, BarChart2 
+  Search, Calendar, BarChart2 
 } from 'lucide-react';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useNavigate } from 'react-router-dom';
