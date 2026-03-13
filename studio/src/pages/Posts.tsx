@@ -107,6 +107,17 @@ export default function Posts() {
                          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', minHeight: '150px', whiteSpace: 'pre-wrap' }}>
                              {item.platform === 'instagram' ? item.content_json?.slides?.join('\n\n') : (item.content_json?.text || item.content_json?.script)}
                          </div>
+
+                         {/* Exibição do Prompt de Imagem se existir */}
+                         {(item.content_json?.image_prompt || item.content_json?.cover_image_prompt) && (
+                            <div style={{ marginTop: '1rem', padding: '0.8rem', background: 'rgba(96, 165, 250, 0.1)', borderRadius: '8px', border: '1px dashed #60a5fa' }}>
+                               <p style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#60a5fa', marginBottom: '0.4rem', textTransform: 'uppercase' }}>💡 Sugestão Visual (IA):</p>
+                               <p style={{ fontSize: '0.8rem', color: '#fff', fontStyle: 'italic' }}>
+                                  "{item.content_json?.image_prompt || item.content_json?.cover_image_prompt}"
+                               </p>
+                            </div>
+                         )}
+
                          <div className="flex-between" style={{ marginTop: '1rem' }}>
                             <button className="btn btn-ghost" style={{ color: '#ef4444', padding: '0.5rem' }} title="Descartar">
                                <XCircle size={18} />

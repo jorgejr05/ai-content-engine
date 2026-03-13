@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import Posts from './pages/Posts';
 import Sources from './pages/Sources';
 import Insights from './pages/Insights';
+import Blog from './pages/Blog';
 
 function App() {
   const location = useLocation();
@@ -40,24 +41,45 @@ function App() {
             <Newspaper size={18} />
             Radar (Feeds Brutos)
           </Link>
-
-          <Link 
-            to="/insights" 
-            className={`btn ${isActive('/insights') ? 'btn-primary' : 'btn-ghost'}`} 
+          <NavLink
+            to="/"
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             style={{ justifyContent: 'flex-start', padding: '0.8rem 1rem' }}
           >
-            <BrainCircuit size={18} />
-            Insights de Ouro (IA)
-          </Link>
+            <Target size={20} /> Visão Geral
+          </NavLink>
 
-          <Link 
-            to="/posts" 
-            className={`btn ${isActive('/posts') ? 'btn-primary' : 'btn-ghost'}`} 
+          <NavLink
+            to="/coletas"
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             style={{ justifyContent: 'flex-start', padding: '0.8rem 1rem' }}
           >
-            <Send size={18} />
-            Revisão de Posts
-          </Link>
+            <Target size={20} /> Radar de Coletas
+          </NavLink>
+
+          <NavLink
+            to="/insights"
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            style={{ justifyContent: 'flex-start', padding: '0.8rem 1rem' }}
+          >
+            <Zap size={20} /> Insights de Ouro
+          </NavLink>
+
+          <NavLink
+            to="/blog"
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            style={{ justifyContent: 'flex-start', padding: '0.8rem 1rem' }}
+          >
+            <FileText size={20} /> Acervo de Artigos
+          </NavLink>
+
+          <NavLink
+            to="/posts"
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            style={{ justifyContent: 'flex-start', padding: '0.8rem 1rem' }}
+          >
+            <Clock size={20} /> Revisão de Posts
+          </NavLink>
         </nav>
       </aside>
 
@@ -67,6 +89,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/coletas" element={<Sources />} />
           <Route path="/insights" element={<Insights />} />
+          <Route path="/blog" element={<Blog />} />
           <Route path="/posts" element={<Posts />} />
         </Routes>
       </main>

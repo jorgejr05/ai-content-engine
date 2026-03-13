@@ -27,7 +27,10 @@ export async function runContentGenerator() {
 
   for (const insight of insights) {
     try {
-      const source = insight.content_sources || insight.community_discussions;
+      const sourceObj = Array.isArray(insight.content_sources) ? insight.content_sources[0] : insight.content_sources;
+      const discussionObj = Array.isArray(insight.community_discussions) ? insight.community_discussions[0] : insight.community_discussions;
+      
+      const source = sourceObj || discussionObj;
       const title = source?.title || 'Tema em Alta';
       const rawContent = source?.content || '';
 
@@ -45,7 +48,8 @@ Responda em formato JSON:
 {
   "title": "string",
   "content": "string (markdown permitido)",
-  "summary": "uma frase curta resumindo o valor"
+  "summary": "uma frase curta resumindo o valor",
+  "image_prompt": "descrição detalhada para gerar uma imagem fotorrealista ou ilustração premium no DALL-E/Midjourney"
 }`;
 
       const masterResp = await groq.chat.completions.create({
@@ -80,7 +84,10 @@ Artigo Master: ${masterData.content}
 Responda EXCLUSIVAMENTE em formato JSON:
 {
   "linkedin": { "text": "..." },
-  "instagram_carousel": { "slides": ["...", "...", "..."] },
+  "instagram_carousel": { 
+    "slides": ["...", "...", "..."],
+    "cover_image_prompt": "prompt para a imagem de capa do carrossel"
+  },
   "video_script": { "script": "..." }
 }`;
 
