@@ -45,7 +45,7 @@ export default function Dashboard() {
             <Activity size={20} color="#34d399" />
           </div>
           <h2 style={{ fontSize: '2.5rem', marginTop: '1rem' }}>{stats.insightsGenerated}</h2>
-          <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>Aprovados pelo Groq (Score > 7)</p>
+          <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>Aprovados pelo Groq (Score &gt; 7)</p>
         </div>
 
         <div className="card">
