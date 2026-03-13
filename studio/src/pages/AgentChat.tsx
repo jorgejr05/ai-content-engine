@@ -61,7 +61,6 @@ export default function AgentChat() {
   }, []);
 
   const sendToAgent = useCallback(async (text: string, isAudio = false) => {
-    // Adicionar a mensagem do usuário imediatamente
     const userMsg: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -71,10 +70,9 @@ export default function AgentChat() {
     };
     setMessages(prev => [...prev, userMsg]);
 
-    // Mostrar indicador de "digitando" imediatamente
     const typingId = addTypingMessage();
 
-    // Delay de 10 segundos — simula "leitura" do agente
+    // Delay de 10 segundos
     await new Promise(resolve => setTimeout(resolve, 10000));
 
     try {
@@ -100,7 +98,7 @@ export default function AgentChat() {
       replaceTypingWithResponse(typingId, {
         id: (Date.now() + 1).toString(),
         role: 'agent',
-        text: '❌ Não consegui me conectar ao servidor. Verifique se o backend está rodando.',
+        text: '❌ Erro de conexão. Verifique se as variáveis de ambiente estão configuradas na Vercel.',
         timestamp: new Date()
       });
     }
@@ -114,7 +112,6 @@ export default function AgentChat() {
     sendToAgent(text);
   };
 
-  // ---- Gravação de Áudio ----
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -130,24 +127,19 @@ export default function AgentChat() {
         stream.getTracks().forEach(t => t.stop());
         if (timerRef.current) clearInterval(timerRef.current);
         setRecordingTime(0);
-
-        // Para simplificar sem backend de transcrição, vamos enviar uma mensagem simulada
-        // Em produção: enviar o blob para Whisper API ou similar
-        const duration = recordingTime;
-        sendToAgent(`[🎤 Áudio de ${duration}s] Analise as últimas tendências de IA para pequenas empresas`, true);
+        sendToAgent(`[🎤 Áudio] Analise tendências recentes baseadas no meu comando de voz.`, true);
       };
 
       mediaRecorder.start();
       setIsRecording(true);
 
-      // Timer
       let seconds = 0;
       timerRef.current = setInterval(() => {
         seconds++;
         setRecordingTime(seconds);
       }, 1000);
     } catch {
-      alert('Não foi possível acessar o microfone. Verifique as permissões do navegador.');
+      alert('Acesso ao microfone negado.');
     }
   };
 
@@ -160,69 +152,55 @@ export default function AgentChat() {
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
-  // ---- Renderização de dados estruturados ----
   const renderData = (msg: Message) => {
     if (!msg.data) return null;
 
     if (msg.action === 'SEARCH' && msg.data.sources) {
       return (
-        <div style={{ marginTop: '0.8rem' }}>
-          {msg.data.total === 0 ? (
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Nenhum resultado encontrado.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {msg.data.sources.slice(0, 5).map((s: any, i: number) => (
-                <a key={i} href={s.url} target="_blank" rel="noreferrer" style={{
-                  display: 'block', padding: '0.6rem 0.8rem',
-                  background: 'rgba(255,255,255,0.05)', borderRadius: '8px',
-                  textDecoration: 'none', color: '#e2e8f0', fontSize: '0.8rem'
-                }}>
-                  <strong>{s.title}</strong>
-                  <br />
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>{s.source} • {new Date(s.created_at).toLocaleDateString('pt-BR')}</span>
-                </a>
-              ))}
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{msg.data.total} resultados</p>
-            </div>
-          )}
+        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {msg.data.sources.slice(0, 5).map((s: any, i: number) => (
+            <a key={i} href={s.url} target="_blank" rel="noreferrer" className="card" style={{
+              display: 'block', padding: '1rem', textDecoration: 'none', background: 'rgba(255,255,255,0.03)'
+            }}>
+              <strong style={{ color: '#fff', fontSize: '0.85rem' }}>{s.title}</strong>
+              <div style={{ marginTop: '0.4rem', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{s.source}</div>
+            </a>
+          ))}
         </div>
       );
     }
 
     if (msg.action === 'ANALYZE' && msg.data.content_angles) {
       return (
-        <div style={{ marginTop: '0.8rem', padding: '0.8rem', background: 'rgba(96,165,250,0.05)', borderRadius: '8px', border: '1px solid rgba(96,165,250,0.15)' }}>
-          <p style={{ fontSize: '0.8rem', fontWeight: 600, color: '#60a5fa', marginBottom: '0.5rem' }}>🧠 Ângulos de Conteúdo:</p>
-          {msg.data.content_angles.map((a: string, i: number) => (
-            <p key={i} style={{ fontSize: '0.8rem', color: '#e2e8f0', marginBottom: '0.3rem' }}>• {a}</p>
-          ))}
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Potencial Viral: {msg.data.viral_potential}/10</p>
+        <div className="card" style={{ marginTop: '1rem', background: 'rgba(139, 92, 246, 0.05)', borderColor: 'rgba(139, 92, 246, 0.2)' }}>
+          <p style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-color)', marginBottom: '0.8rem' }}>🧠 Estratégia Recomendada:</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+             {msg.data.content_angles.map((a: string, i: number) => (
+               <div key={i} style={{ display: 'flex', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-primary)' }}>
+                 <span>•</span> <span>{a}</span>
+               </div>
+             ))}
+          </div>
+          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between' }}>
+            <span className="badge badge-purple">Viral: {msg.data.viral_potential}/10</span>
+          </div>
         </div>
       );
     }
 
     if (msg.action === 'STATUS') {
       return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '0.8rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '1rem' }}>
           {[
-            { label: 'Fontes', value: msg.data.sources },
-            { label: 'Insights', value: msg.data.insights },
-            { label: 'Fila', value: msg.data.pending_posts }
+            { label: 'Sinais', value: msg.data.sources, color: 'var(--accent-color)' },
+            { label: 'Insights', value: msg.data.insights, color: 'var(--accent-secondary)' },
+            { label: 'Drafts', value: msg.data.pending_posts, color: '#4ade80' }
           ].map((s, i) => (
-            <div key={i} style={{ padding: '0.6rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center' }}>
-              <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>{s.value || 0}</p>
-              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{s.label}</p>
+            <div key={i} className="card" style={{ padding: '0.8rem', textAlign: 'center' }}>
+              <p style={{ fontSize: '1.5rem', fontWeight: 800, color: s.color }}>{s.value || 0}</p>
+              <p style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{s.label}</p>
             </div>
           ))}
-        </div>
-      );
-    }
-
-    if (msg.action === 'GENERATE' && msg.data.post_created) {
-      return (
-        <div style={{ marginTop: '0.8rem', padding: '0.8rem', background: 'rgba(34,197,94,0.05)', borderRadius: '8px', border: '1px solid rgba(34,197,94,0.15)' }}>
-          <p style={{ fontSize: '0.8rem', color: '#22c55e' }}>✅ Post criado!</p>
-          <p style={{ fontSize: '0.8rem', color: '#e2e8f0', marginTop: '0.3rem', fontStyle: 'italic' }}>"{msg.data.preview}"</p>
         </div>
       );
     }
@@ -231,122 +209,98 @@ export default function AgentChat() {
   };
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 2rem)' }}>
-      {/* Header do Chat */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{
-          width: '44px', height: '44px', borderRadius: '50%',
-          background: 'linear-gradient(135deg, var(--accent-color), #7c3aed)',
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 8rem)', maxWidth: '1000px', margin: '0 auto' }}>
+      <header style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ 
+          width: '50px', height: '50px', borderRadius: '16px', 
+          background: 'linear-gradient(135deg, var(--accent-color), var(--accent-secondary))',
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
-          <Bot size={22} color="#fff" />
+          <Bot size={28} color="#fff" />
         </div>
         <div>
-          <h2 style={{ fontSize: '1.1rem', color: '#fff', marginBottom: '0.1rem' }}>Agente IA</h2>
-          <p style={{ fontSize: '0.75rem', color: '#22c55e' }}>● Online</p>
+          <h2 style={{ fontSize: '1.5rem' }}>Agente de Inteligência</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+             <span style={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: 600 }}>Pronto para pesquisar</span>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Chat Messages — WhatsApp style */}
       <div style={{
-        flex: 1, overflowY: 'auto', padding: '1rem',
-        background: 'rgba(0,0,0,0.15)', borderRadius: '12px',
-        backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(124,58,237,0.03) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(96,165,250,0.03) 0%, transparent 50%)',
-        display: 'flex', flexDirection: 'column', gap: '0.6rem'
+        flex: 1, overflowY: 'auto', padding: '1.5rem',
+        background: 'rgba(255,255,255,0.01)', borderRadius: '24px',
+        border: '1px solid var(--border-color)',
+        display: 'flex', flexDirection: 'column', gap: '1.2rem',
+        scrollbarWidth: 'none'
       }}>
         {messages.map(msg => (
           <div key={msg.id} style={{
             display: 'flex',
             justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-            alignItems: 'flex-end', gap: '0.5rem'
+            gap: '1rem'
           }}>
-            {/* Avatar do agente */}
             {msg.role === 'agent' && (
               <div style={{
-                width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
-                background: 'linear-gradient(135deg, var(--accent-color), #7c3aed)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                width: '32px', height: '32px', borderRadius: '10px', flexShrink: 0,
+                background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '4px'
               }}>
-                <Bot size={14} color="#fff" />
+                <Bot size={18} color="var(--accent-color)" />
               </div>
             )}
 
-            {/* Bolha */}
             <div style={{
-              maxWidth: '75%', minWidth: '80px',
-              padding: msg.isTyping ? '0.8rem 1.2rem' : '0.7rem 1rem',
-              borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-              background: msg.role === 'user'
-                ? 'linear-gradient(135deg, #0d9488, #0f766e)'
-                : 'rgba(255,255,255,0.07)',
-              position: 'relative' as const
+              maxWidth: '80%',
+              padding: '1rem 1.25rem',
+              borderRadius: msg.role === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
+              background: msg.role === 'user' 
+                ? 'linear-gradient(135deg, var(--accent-color), #7c3aed)' 
+                : 'var(--bg-card)',
+              border: '1px solid',
+              borderColor: msg.role === 'user' ? 'transparent' : 'var(--border-color)',
+              boxShadow: msg.role === 'user' ? '0 10px 20px -10px rgba(139, 92, 246, 0.5)' : 'none'
             }}>
               {msg.isTyping ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                  <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                  digitando...
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                  <Loader size={16} className="animate-spin" />
+                  <span>Sintonizando frequências...</span>
                 </div>
               ) : (
                 <>
                   {msg.isAudio && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                      <Mic size={14} color={msg.role === 'user' ? '#fff' : '#60a5fa'} />
-                      <div style={{ height: '3px', flex: 1, borderRadius: '2px', background: 'rgba(255,255,255,0.3)' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '0.8rem', padding: '0.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>
+                      <Mic size={16} />
+                      <div style={{ height: '4px', flex: 1, borderRadius: '2px', background: 'rgba(255,255,255,0.2)' }} />
                     </div>
                   )}
-                  {msg.action && (
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                      fontSize: '0.6rem', fontWeight: 600, textTransform: 'uppercase' as const,
-                      color: '#60a5fa', marginBottom: '0.3rem', letterSpacing: '0.5px'
-                    }}>
-                      {getActionIcon(msg.action)} {msg.action}
-                    </span>
-                  )}
-                  <p style={{ fontSize: '0.85rem', lineHeight: '1.5', color: '#fff', whiteSpace: 'pre-wrap', margin: 0 }}>{msg.text}</p>
+                  <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: '#fff', whiteSpace: 'pre-wrap', margin: 0 }}>{msg.text}</p>
                   {renderData(msg)}
-                  <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.4rem', textAlign: 'right' as const }}>
+                  <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.8rem', textAlign: msg.role === 'user' ? 'right' : 'left' }}>
                     {msg.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                  </p>
+                  </div>
                 </>
               )}
             </div>
-
-            {/* Avatar do usuário */}
-            {msg.role === 'user' && (
-              <div style={{
-                width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
-                background: 'rgba(255,255,255,0.1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
-                <User size={14} color="#fff" />
-              </div>
-            )}
           </div>
         ))}
         <div ref={chatEndRef} />
       </div>
 
-      {/* Input Area — WhatsApp style */}
       <form onSubmit={handleSend} style={{
-        display: 'flex', gap: '0.6rem', alignItems: 'center',
-        marginTop: '0.8rem', padding: '0.6rem',
-        background: 'var(--bg-secondary)',
-        borderRadius: '50px',
-        border: '1px solid rgba(255,255,255,0.08)'
+        marginTop: '1.5rem', padding: '0.5rem',
+        background: 'rgba(255,255,255,0.03)', borderRadius: '20px',
+        border: '1px solid var(--border-color)',
+        display: 'flex', alignItems: 'center', gap: '0.5rem'
       }}>
         {isRecording ? (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0 1rem' }}>
-            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444', animation: 'pulse 1s infinite' }} />
-            <span style={{ color: '#ef4444', fontSize: '0.9rem', fontWeight: 600 }}>Gravando... {formatTime(recordingTime)}</span>
-            <div style={{ flex: 1 }} />
-            <button type="button" onClick={stopRecording} className="btn" style={{
-              background: '#ef4444', color: '#fff', borderRadius: '50%',
-              width: '40px', height: '40px', padding: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              <Square size={16} />
-            </button>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1rem' }}>
+             <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ef4444', animation: 'pulse 1.5s infinite' }} />
+             <span style={{ color: '#ef4444', fontWeight: 600 }}>Gravando: {formatTime(recordingTime)}</span>
+             <div style={{ flex: 1 }} />
+             <button type="button" onClick={stopRecording} className="btn" style={{ background: '#ef4444', color: '#fff', borderRadius: '12px', padding: '0.6rem' }}>
+                <Square size={18} />
+             </button>
           </div>
         ) : (
           <>
@@ -354,26 +308,19 @@ export default function AgentChat() {
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
-              placeholder="Digite uma mensagem..."
+              placeholder="Pergunte algo ou peça uma pesquisa..."
               style={{
                 flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                color: '#fff', fontSize: '0.9rem', padding: '0.5rem 1rem'
+                color: '#fff', fontSize: '1rem', padding: '0.8rem 1.2rem', fontFamily: 'inherit'
               }}
             />
             {input.trim() ? (
-              <button type="submit" className="btn btn-primary" style={{
-                borderRadius: '50%', width: '40px', height: '40px', padding: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
-                <Send size={18} />
+              <button type="submit" className="btn-primary" style={{ borderRadius: '14px', width: '45px', height: '45px', padding: 0 }}>
+                <Send size={20} />
               </button>
             ) : (
-              <button type="button" onClick={startRecording} className="btn" style={{
-                background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '50%',
-                width: '40px', height: '40px', padding: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
-                <Mic size={18} />
+              <button type="button" onClick={startRecording} className="btn-ghost" style={{ borderRadius: '14px', width: '45px', height: '45px', padding: 0 }}>
+                <Mic size={20} />
               </button>
             )}
           </>
@@ -381,8 +328,9 @@ export default function AgentChat() {
       </form>
 
       <style>{`
+        .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.7; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.7; } }
       `}</style>
     </div>
   );

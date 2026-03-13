@@ -34,65 +34,88 @@ function App() {
     <div className="app-container">
       {/* Sidebar Navigation */}
       <aside className="sidebar">
-        <div style={{ marginBottom: '2rem', marginTop: '1rem' }}>
-          <h2 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-            <Sparkles size={24} color="var(--accent-color)" />
-            AI Studio
-          </h2>
-          <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>Content Engine</p>
+        <div style={{ marginBottom: '2.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: 'linear-gradient(135deg, var(--accent-color), var(--accent-secondary))',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 8px 16px -4px var(--accent-glow)'
+            }}>
+              <Sparkles size={22} color="#fff" />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.2rem', margin: 0 }}>Studio</h2>
+              <span className="badge badge-purple" style={{ fontSize: '0.6rem', padding: '0.1rem 0.4rem' }}>Media Engine</span>
+            </div>
+          </div>
         </div>
 
-        <nav className="flex-column" style={{ gap: '0.3rem', flex: 1 }}>
-          <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} style={{ justifyContent: 'flex-start', padding: '0.7rem 1rem' }}>
-            <LayoutDashboard size={18} /> Visão Geral
-          </NavLink>
+        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Inteligência Section */}
+          <div>
+            <p style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.8rem', paddingLeft: '1rem' }}>
+              Inteligência
+            </p>
+            <div className="flex-column" style={{ gap: '0.3rem' }}>
+              <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                <LayoutDashboard size={18} /> Visão Geral
+              </NavLink>
 
-          <NavLink to="/coletas" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} style={{ justifyContent: 'flex-start', padding: '0.7rem 1rem' }}>
-            <Target size={18} /> Radar de Coletas
-          </NavLink>
+              <NavLink to="/agent" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                <MessageSquare size={18} /> Agente IA
+              </NavLink>
 
-          <NavLink to="/insights" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} style={{ justifyContent: 'flex-start', padding: '0.7rem 1rem' }}>
-            <Zap size={18} /> Insights de Ouro
-          </NavLink>
+              <NavLink to="/insights" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                <Zap size={18} /> Insights
+              </NavLink>
+            </div>
+          </div>
 
-          <NavLink to="/blog" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} style={{ justifyContent: 'flex-start', padding: '0.7rem 1rem' }}>
-            <FileText size={18} /> Acervo de Artigos
-          </NavLink>
+          {/* Conteúdo Section */}
+          <div>
+            <p style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.8rem', paddingLeft: '1rem' }}>
+              Diretório
+            </p>
+            <div className="flex-column" style={{ gap: '0.3rem' }}>
+              <NavLink to="/blog" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                <FileText size={18} /> Acervo Blog
+              </NavLink>
 
-          <NavLink to="/posts" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} style={{ justifyContent: 'flex-start', padding: '0.7rem 1rem' }}>
-            <Clock size={18} /> Revisão de Posts
-          </NavLink>
-
-          <NavLink to="/agent" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} style={{ justifyContent: 'flex-start', padding: '0.7rem 1rem' }}>
-            <MessageSquare size={18} /> Falar com Agente
-          </NavLink>
+              <NavLink to="/posts" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                <Clock size={18} /> Flywheel Feed
+              </NavLink>
+              
+              <NavLink to="/coletas" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                <Target size={18} /> Radar News
+              </NavLink>
+            </div>
+          </div>
         </nav>
 
         {/* User section */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.8rem' }}>
-          <NavLink to="/profile" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} style={{
-            justifyContent: 'flex-start', padding: '0.7rem 1rem',
-            display: 'flex', alignItems: 'center', gap: '0.7rem'
-          }}>
+        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.2rem' }}>
+          <NavLink to="/profile" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} style={{ marginBottom: '0.5rem' }}>
             <div style={{
-              width: '32px', height: '32px', borderRadius: '10px',
-              background: 'linear-gradient(135deg, var(--accent-color), #7c3aed)',
+              width: '32px', height: '32px', borderRadius: '8px',
+              background: 'linear-gradient(135deg, var(--accent-color), var(--accent-secondary))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '0.85rem', fontWeight: 700, color: '#fff', flexShrink: 0
             }}>
               {displayName.charAt(0).toUpperCase()}
             </div>
             <div style={{ overflow: 'hidden' }}>
-              <p style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</p>
-              <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</p>
+              <p style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</p>
+              <p style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Configurações</p>
             </div>
           </NavLink>
 
-          <button onClick={signOut} className="btn btn-ghost" style={{
-            width: '100%', justifyContent: 'flex-start', padding: '0.6rem 1rem',
-            color: 'rgba(239,68,68,0.8)', fontSize: '0.8rem', marginTop: '0.3rem'
+          <button onClick={signOut} className="btn-ghost" style={{
+            width: '100%', justifyContent: 'flex-start', padding: '0.7rem 1rem',
+            color: 'rgba(239,68,68,0.8)', fontSize: '0.8rem', borderRadius: 'var(--radius-md)',
+            display: 'flex', alignItems: 'center', gap: '0.8rem'
           }}>
-            <LogOut size={16} /> Sair
+            <LogOut size={16} /> Sair do Studio
           </button>
         </div>
       </aside>
