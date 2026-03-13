@@ -1,5 +1,5 @@
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Newspaper, Sparkles, Send, BrainCircuit } from 'lucide-react';
+import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Newspaper, Sparkles, Target, Zap, FileText, Clock } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Posts from './pages/Posts';
 import Sources from './pages/Sources';
@@ -8,8 +8,6 @@ import Blog from './pages/Blog';
 
 function App() {
   const location = useLocation();
-
-  const isActive = (path: string) => location.pathname === path;
 
   return (
     <div className="app-container">
@@ -24,33 +22,17 @@ function App() {
         </div>
 
         <nav className="flex-column" style={{ gap: '0.5rem' }}>
-          <Link 
+          <NavLink 
             to="/" 
-            className={`btn ${isActive('/') ? 'btn-primary' : 'btn-ghost'}`} 
-            style={{ justifyContent: 'flex-start', padding: '0.8rem 1rem' }}
-          >
-            <LayoutDashboard size={18} />
-            Visão Geral
-          </Link>
-
-          <Link 
-            to="/coletas" 
-            className={`btn ${isActive('/coletas') ? 'btn-primary' : 'btn-ghost'}`} 
-            style={{ justifyContent: 'flex-start', padding: '0.8rem 1rem' }}
-          >
-            <Newspaper size={18} />
-            Radar (Feeds Brutos)
-          </Link>
-          <NavLink
-            to="/"
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             style={{ justifyContent: 'flex-start', padding: '0.8rem 1rem' }}
           >
-            <Target size={20} /> Visão Geral
+            <LayoutDashboard size={20} />
+            Visão Geral
           </NavLink>
 
-          <NavLink
-            to="/coletas"
+          <NavLink 
+            to="/coletas" 
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             style={{ justifyContent: 'flex-start', padding: '0.8rem 1rem' }}
           >
