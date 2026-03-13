@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import type { FormEvent } from 'react';
-import { Send, Bot, Mic, Square, Loader, Sparkles, Copy, Trash2, ThumbsUp, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Send, Bot, Loader, Sparkles, Trash2, ThumbsUp, CheckCircle, ChevronLeft, ChevronRight, TrendingUp, Target } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -10,7 +9,6 @@ interface Message {
   data?: any;
   timestamp: Date;
   isTyping?: boolean;
-  isAudio?: boolean;
   next_suggestion?: string;
 }
 
@@ -23,19 +21,14 @@ export default function AgentChat() {
     return [{
       id: '0',
       role: 'agent',
-      text: 'Olá! Sou seu Growth Strategist Agent. 🧠\n\nEu tenho acesso às **Fontes Monitoradas**, **Insights Gerados**, **Conteúdos Pendentes** e ao **Trend Hunter**.\n\nMinha missão é IA Curating & Flywheel Gen. O que vamos dominar hoje?',
+      text: 'Olá! Sou seu Editor-Chefe & Growth Strategist. 🧠\n\nEu comando o seu Pipeline Editorial: **Busca -> Insights -> Viral Score -> Geração Multicanal**.\n\nO que vamos dominar hoje?',
       timestamp: new Date()
     }];
   });
   
   const [input, setInput] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
   const [typingStatus, setTypingStatus] = useState('Analisando seu pedido...');
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     localStorage.setItem('chat_history', JSON.stringify(messages));
@@ -47,7 +40,7 @@ export default function AgentChat() {
       const initialMsg: Message = {
         id: Date.now().toString(),
         role: 'agent',
-        text: 'Memória limpa. Estou pronto para novos desafios estratégicos! 🚀',
+        text: 'Memória limpa. Pipeline editorial pronto para novos inputs! 🚀',
         timestamp: new Date()
       };
       setMessages([initialMsg]);
@@ -71,12 +64,12 @@ export default function AgentChat() {
     setMessages(prev => prev.map(m => m.id === typingId ? response : m));
   }, []);
 
-  const sendToAgent = useCallback(async (text: string, isAudio = false) => {
-    const userMsg: Message = { id: Date.now().toString(), role: 'user', text, timestamp: new Date(), isAudio };
+  const sendToAgent = useCallback(async (text: string) => {
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', text, timestamp: new Date() };
     setMessages(prev => [...prev, userMsg]);
 
     const typingId = addTypingMessage();
-    const statuses = ["Interpretando intenção...", "Varendo RSS e Reddit...", "Avaliando relevância...", "Sintetizando Flywheel Gen...", "Formatando Preview..."];
+    const statuses = ["Buscando tendências...", "Analisando Viral Score...", "Extraindo Insights de Negócio...", "Planejando Conteúdo...", "Formatando Pipeline..."];
     let idx = 0;
     const interval = setInterval(() => { setTypingStatus(statuses[idx % statuses.length]); idx++; }, 2000);
 
@@ -95,7 +88,7 @@ export default function AgentChat() {
       const agentMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'agent',
-        text: data.response || 'Insights gerados.',
+        text: data.response || 'Análise concluída.',
         action: data.action,
         data: data.data,
         next_suggestion: data.next_suggestion,
@@ -107,7 +100,7 @@ export default function AgentChat() {
       replaceTypingWithResponse(typingId, {
         id: (Date.now() + 1).toString(),
         role: 'agent',
-        text: '❌ Erro de conexão.',
+        text: '❌ Erro no pipeline editorial.',
         timestamp: new Date()
       });
     }
@@ -131,17 +124,7 @@ export default function AgentChat() {
       return <MultiChannelPreview data={data} onSave={(p, c) => handleAction('SAVE_TO_CENTRAL', { platform: p, content: c })} onLike={(p, topic, sample) => handleAction('SUBMIT_FEEDBACK', { platform: p, topic, is_positive: true, sample })} />;
     }
     if (action === 'RESEARCH') {
-      return (
-        <div className="card" style={{ marginTop: '1rem', background: 'rgba(255,255,255,0.03)', padding: '1.25rem' }}>
-          <h4 style={{ color: 'var(--accent-secondary)', fontSize: '0.9rem', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Sparkles size={16}/> IA Curating</h4>
-          <p style={{ fontSize: '0.85rem', color: '#fff', lineHeight: '1.6' }}>{data.summary}</p>
-          <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {data.sources?.slice(0, 3).map((s: any, i: number) => (
-              <a key={i} href={s.url} target="_blank" rel="noreferrer" className="badge badge-purple" style={{ fontSize: '0.65rem' }}>🔗 {s.source}</a>
-            ))}
-          </div>
-        </div>
-      );
+      return <EditorialReport data={data} />;
     }
     return null;
   };
@@ -150,14 +133,14 @@ export default function AgentChat() {
     <div className="animate-fade-in chat-page-container">
       <header style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '50px', height: '50px', borderRadius: '16px', background: 'linear-gradient(135deg, var(--accent-color), var(--accent-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 16px -4px rgba(139, 92, 246, 0.4)' }}>
+          <div style={{ width: '50px', height: '50px', borderRadius: '16px', background: 'linear-gradient(135deg, var(--accent-color), #ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 16px -4px rgba(236, 72, 153, 0.4)' }}>
             <Bot size={28} color="#fff" />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Growth Strategist</h2>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Editor-Chefe IA</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
-               <span style={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: 600 }}>IA Curating Online</span>
+               <span style={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: 600 }}>Editorial Pipeline Online</span>
             </div>
           </div>
         </div>
@@ -198,9 +181,48 @@ export default function AgentChat() {
       </div>
 
       <form onSubmit={(e) => { e.preventDefault(); if(input.trim()) { setInput(''); sendToAgent(input); } }} style={{ marginTop: '1.5rem', padding: '0.6rem', background: 'rgba(255,255,255,0.03)', borderRadius: '24px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-        <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder="Agende posts, pesquise tendências ou converse..." style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '1rem', padding: '0.8rem 1.2rem' }} />
+        <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder="Tema para o pipeline editorial..." style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '1rem', padding: '0.8rem 1.2rem' }} />
         <button type="submit" className="btn-primary" style={{ borderRadius: '16px', width: '48px', height: '48px', padding: 0 }}><Send size={22} /></button>
       </form>
+    </div>
+  );
+}
+
+function EditorialReport({ data }: { data: any }) {
+  return (
+    <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {data.reports?.map((report: any, idx: number) => (
+        <div key={idx} className="card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+            <h4 style={{ color: '#fff', fontSize: '1rem', fontWeight: 700, margin: 0 }}>{report.title}</h4>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: report.viral_score >= 8 ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.05)', padding: '0.3rem 0.6rem', borderRadius: '8px', border: '1px solid', borderColor: report.viral_score >= 8 ? '#22c55e' : 'rgba(255,255,255,0.1)' }}>
+              <TrendingUp size={14} color={report.viral_score >= 8 ? '#22c55e' : '#fff'} />
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: report.viral_score >= 8 ? '#22c55e' : '#fff' }}>{report.viral_score}</span>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '1rem' }}>
+             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '0.8rem' }}>{report.summary}</p>
+             <div style={{ padding: '0.75rem', background: 'rgba(139, 92, 246, 0.05)', borderRadius: '10px', borderLeft: '3px solid var(--accent-color)' }}>
+               <p style={{ fontSize: '0.75rem', color: 'var(--accent-secondary)', fontWeight: 600, margin: 0 }}>💡 IMPACTO NO NEGÓCIO:</p>
+               <p style={{ fontSize: '0.8rem', color: '#fff', margin: '0.2rem 0 0 0' }}>{report.impact}</p>
+             </div>
+          </div>
+
+          <div>
+             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+               <Target size={14} /> Ideias de Conteúdo
+             </p>
+             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+               {report.content_ideas?.map((idea: string, i: number) => (
+                 <div key={i} style={{ background: 'rgba(0,0,0,0.2)', padding: '0.5rem 0.75rem', borderRadius: '8px', fontSize: '0.75rem', color: '#fff', border: '1px solid rgba(255,255,255,0.05)' }}>
+                   {idea}
+                 </div>
+               ))}
+             </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

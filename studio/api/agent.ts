@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '@vercel node';
 import { createClient } from '@supabase/supabase-js';
 import Groq from 'groq-sdk';
 
@@ -20,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { message, history = [], action, details } = req.body;
 
   try {
-    // 1. Ações Diretas (sem LLM se necessário)
+    // Ações Diretas
     if (action === 'SAVE_TO_CENTRAL') {
       const { platform, content } = details || {};
       const { error } = await supabase.from('generated_posts').insert({
@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         content_json: content,
         status: 'pending'
       });
-      return res.json({ success: !error, error: error?.message });
+      return res.json({ success: !error });
     }
 
     if (action === 'SUBMIT_FEEDBACK') {
@@ -42,43 +42,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.json({ success: !error });
     }
 
-    // 2. Buscar aprendizados anteriores (Feedback Loop)
+    // 1. Contexto de Aprendizado
     const { data: learning } = await supabase
       .from('ai_feedback')
-      .select('content_topic, platform, is_positive')
+      .select('content_topic')
       .eq('is_positive', true)
       .limit(5);
 
     const learnPrompt = learning?.length 
-      ? `O usuário gosta de conteúdos sobre: ${learning.map(l => l.content_topic).join(', ')}.` 
+      ? `Estilo preferido do usuário: ${learning.map(l => l.content_topic).join(', ')}.` 
       : '';
 
-    // 3. Classificação de Intenção e Memória via LLM
+    // 2. Classificação de Intenção (Pipeline Vision)
     const intentResponse = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
         {
           role: 'system',
-          content: `Você é o "Growth Strategist Agent" do ecossistema AI Content Studio.
-Sua base de conhecimento inclui: Fontes Monitoradas (RSS/Reddit), Insights Gerados, Conteúdos Pendentes e Trend Hunter.
-
-Sua missão: IA Curating & Flywheel Gen. Use Llama 3 para avaliar relevância e gerar posts/imagens.
+          content: `Você é o "Editor-Chefe" do ecossistema AI Content Studio.
+Sua missão: Orquestrar o Pipeline Editorial (Busca -> Análise -> Viral Score -> Geração).
 
 Capacidades:
-- SEARCH: Busca em notícias/discussions. Filtre por tema se fornecido.
-- RESEARCH: Analisa e resume sinais captados (IA Curating).
-- MULTI_GENERATE: Gera pacotes para LinkedIn, Instagram (Carousel de 5 slides), TikTok (Roteiro) e Twitter/X (Thread).
-- STATUS: Saúde do sistema.
+- SEARCH: Busca rasa por notícias.
+- RESEARCH: Fluxo Editorial Automático (Análise profunda, Impacto de Negócio, Ideias de Conteúdo e Viral Score).
+- MULTI_GENERATE: Geração multicanal com Strategy Layer (Autoridade, Viral, Leads, Educativo).
+- STATUS: Saúde do sistema de coleta.
 
-Diretriz de Humanização: Seja proativo e estratégico. ${learnPrompt}
+Diretriz: Seja estratégico e analítico. ${learnPrompt}
 
-Responda SEMPRE em JSON:
+Responda em JSON:
 {
   "action": "SEARCH" | "RESEARCH" | "MULTI_GENERATE" | "STATUS" | "CHAT",
-  "topic": "tema",
+  "topic": "nicho/tema",
+  "strategy": "Autoridade" | "Viral" | "Leads" | "Educativo",
   "response": "texto humanizado",
-  "next_suggestion": "dica proativa",
-  "data": {}
+  "next_suggestion": "dica proativa"
 }`
         },
         ...history.slice(-8).map((m: any) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text })),
@@ -93,23 +91,31 @@ Responda SEMPRE em JSON:
     switch (aiResult.action) {
       case 'SEARCH':
       case 'RESEARCH': {
-        let query = supabase.from('content_sources').select('id, title, url, source, created_at, content_text');
+        let query = supabase.from('content_sources').select('id, title, url, source, content_text');
         if (aiResult.topic) query = query.ilike('title', `%${aiResult.topic}%`);
 
-        const { data: sources } = await query.order('created_at', { ascending: false }).limit(10);
+        const { data: sources } = await query.order('created_at', { ascending: false }).limit(6);
 
         if (aiResult.action === 'RESEARCH' && sources && sources.length > 0) {
           const researchResp = await groq.chat.completions.create({
-            model: 'llama-3.1-8b-instant',
+            model: 'llama-3.3-70b-versatile',
             messages: [{
               role: 'user',
-              content: `IA Curating: Resuma estas notícias e extraia padrões virais para PMEs. Fale sobre o ecossistema Flywheel.\n\n${sources.map(s => `- ${s.title}: ${s.content_text?.substring(0, 300)}`).join('\n')}`
-            }]
+              content: `Atue como Editor-Chefe. Para cada notícia abaixo, gere um relatório estruturado em JSON com:
+              - title: Título da notícia
+              - summary: Resumo executivo (2 frases)
+              - impact: Impacto real para o negócio do usuário (PMEs/Ecommerce)
+              - content_ideas: 3 ideias rápidas de posts
+              - viral_score: Uma nota de 0 a 10 para o potencial de engajamento.
+
+              Notícias:
+              ${sources.map(s => `- ${s.title}: ${s.content_text?.substring(0, 400)}`).join('\n')}
+              
+              Retorne apenas o JSON: { "reports": [...] }`
+            }],
+            response_format: { type: 'json_object' }
           });
-          actionResult = {
-            summary: researchResp.choices[0]?.message?.content,
-            sources: sources.map(s => ({ id: s.id, title: s.title, url: s.url, source: s.source })),
-          };
+          actionResult = JSON.parse(researchResp.choices[0]?.message?.content || '{ "reports": [] }');
         } else {
           actionResult = { sources: sources || [] };
         }
@@ -117,18 +123,21 @@ Responda SEMPRE em JSON:
       }
 
       case 'MULTI_GENERATE': {
+        const strategy = aiResult.strategy || 'Autoridade';
         const genResp = await groq.chat.completions.create({
           model: 'llama-3.3-70b-versatile',
           messages: [{
             role: 'user',
-            content: `Flywheel Gen: Crie um kit estratégico de conteúdo sobre "${aiResult.topic}".
-            Para Instagram, crie um CARROSSEL de 5 slides (array de strings).
-            Para cada rede, inclua: [Texto/Legenda/Roteiro], [suggestion: Sugestão de Publicação (Melhor horário e hashtags)].
+            content: `Geração Estratégica (${strategy}): Crie um kit de conteúdo sobre "${aiResult.topic}".
+            - LinkedIn: Tom de autoridade.
+            - Instagram: Carrossel (5 slides).
+            - TikTok: Roteiro viral.
+            - Twitter: Thread rápida.
             
             Retorne em JSON:
             {
               "linkedin": { "text": "...", "suggestion": "..." },
-              "instagram": { "slides": ["Slide 1", "..."], "suggestion": "..." },
+              "instagram": { "slides": ["...", "..."], "suggestion": "..." },
               "twitter": { "text": "...", "suggestion": "..." },
               "tiktok": { "script": "...", "suggestion": "..." }
             }`
@@ -140,17 +149,16 @@ Responda SEMPRE em JSON:
       }
 
       case 'STATUS': {
-        const [{ count: sources }, { count: insights }, { count: posts }] = await Promise.all([
+        const [{ count: sources }, { count: insights }] = await Promise.all([
           supabase.from('content_sources').select('*', { count: 'exact', head: true }),
-          supabase.from('content_insights').select('*', { count: 'exact', head: true }),
-          supabase.from('generated_posts').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+          supabase.from('content_insights').select('*', { count: 'exact', head: true })
         ]);
-        actionResult = { sources, insights, pending_posts: posts };
+        actionResult = { sources, insights };
         break;
       }
 
       default:
-        actionResult = aiResult.data || {};
+        actionResult = {};
     }
 
     return res.json({ 
@@ -162,7 +170,7 @@ Responda SEMPRE em JSON:
     });
 
   } catch (e: any) {
-    console.error('Agent error:', e.message);
+    console.error('Editor error:', e.message);
     return res.status(500).json({ success: false, error: e.message });
   }
 }
