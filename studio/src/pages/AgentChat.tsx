@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { FormEvent } from 'react';
-import { Send, Bot, Mic, Square, Loader, Sparkles, Copy, Check } from 'lucide-react';
+import { Send, Bot, Mic, Square, Loader, Sparkles, Copy } from 'lucide-react';
 
 interface Message {
   id: string;
