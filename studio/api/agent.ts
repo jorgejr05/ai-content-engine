@@ -134,7 +134,7 @@ Responda em JSON:
         let query = supabase.from('content_sources').select('id, title, url, source, content_text');
         if (aiResult.topic) query = query.ilike('title', `%${aiResult.topic}%`);
 
-        const { data: sources } = await query.order('created_at', { ascending: false }).limit(6);
+        const { data: sources } = await query.order('published_at', { ascending: false }).limit(6);
 
         if (aiResult.action === 'RESEARCH' && sources && sources.length > 0) {
           const researchResp = await groq.chat.completions.create({
