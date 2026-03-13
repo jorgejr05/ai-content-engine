@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../config/supabase';
 import { 
   Database, Lightbulb, ExternalLink, Zap, 
-  Search, Calendar, BarChart2, MousePointer2, RefreshCcw 
+  Search, Calendar, BarChart2, RefreshCcw 
 } from 'lucide-react';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useNavigate } from 'react-router-dom';
@@ -74,11 +74,20 @@ export default function Discovery() {
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <button 
               onClick={fetchData} 
-              className={`btn btn-ghost ${loading ? 'animate-spin' : ''}`}
-              style={{ padding: '0.8rem', borderRadius: '14px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.03)' }}
+              className={`btn ${loading ? 'btn-ghost' : 'btn-primary'}`}
+              style={{ 
+                padding: '0.8rem 1.2rem', 
+                borderRadius: '16px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.6rem',
+                fontSize: '0.85rem'
+              }}
+              disabled={loading}
               title="Sincronizar com o banco"
             >
-              <RefreshCcw size={18} />
+              <RefreshCcw size={18} className={loading ? 'animate-spin' : ''} />
+              {loading ? 'Sincronizando...' : 'Sincronizar'}
             </button>
 
             {/* Search Bar Premium */}
