@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Bot, Loader, Trash2, ThumbsUp, CheckCircle, ChevronLeft, ChevronRight, TrendingUp, Target } from 'lucide-react';
+import { 
+  Send, Bot, Loader, Trash2, ThumbsUp, CheckCircle, 
+  ChevronLeft, ChevronRight, TrendingUp, Target 
+} from 'lucide-react';
+import { useNotifications } from '../contexts/NotificationContext';
 
 interface Message {
   id: string;
@@ -13,6 +17,7 @@ interface Message {
 }
 
 export default function AgentChat() {
+  const { addNotification } = useNotifications();
   const [messages, setMessages] = useState<Message[]>(() => {
     const saved = localStorage.getItem('chat_history');
     if (saved) {
@@ -36,6 +41,7 @@ export default function AgentChat() {
   }, [messages]);
 
   const clearChat = () => {
+    // Usando o confirm nativo por enquanto, mas o resultado será via Toast
     if (confirm('Deseja limpar todo o histórico da conversa?')) {
       const initialMsg: Message = {
         id: Date.now().toString(),
@@ -45,6 +51,7 @@ export default function AgentChat() {
       };
       setMessages([initialMsg]);
       localStorage.removeItem('chat_history');
+      addNotification('info', 'Histórico de conversa removido.');
     }
   };
 
@@ -97,25 +104,34 @@ export default function AgentChat() {
       replaceTypingWithResponse(typingId, agentMsg);
       setTypingStatus('Analisando seu pedido...');
     } catch {
+      clearInterval(interval);
       replaceTypingWithResponse(typingId, {
         id: (Date.now() + 1).toString(),
         role: 'agent',
         text: '❌ Erro no pipeline editorial.',
         timestamp: new Date()
       });
+      addNotification('error', 'Falha na conexão com o Agente.');
     }
-  }, [messages, addTypingMessage, replaceTypingWithResponse]);
+  }, [messages, addTypingMessage, replaceTypingWithResponse, addNotification]);
 
   const handleAction = async (action: string, details: any) => {
     try {
-      await fetch('/api/agent', {
+      const response = await fetch('/api/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, details })
       });
-      alert(action === 'SAVE_TO_CENTRAL' ? '✅ Salvo na Central de Conteúdo!' : '❤️ Feedback registrado!');
+      const data = await response.json();
+      if (data.success) {
+        if (action === 'SAVE_TO_CENTRAL') {
+          addNotification('success', 'Kit de conteúdo salvo na Central!');
+        } else {
+          addNotification('success', 'Feedback registrado no aprendizado da IA.');
+        }
+      }
     } catch {
-      alert('Erro ao processar ação.');
+      addNotification('error', 'Erro ao processar sua solicitação.');
     }
   };
 
@@ -294,7 +310,7 @@ function MultiChannelPreview({ data, onSave, onSaveAll, onLike }: { data: any, o
             </button>
           </div>
           
-          <button onClick={handleSaveAll} className="btn-secondary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.8rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}>
+          <button onClick={handleSaveAll} className="btn-secondary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.8rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer' }}>
             🚀 SALVAR KIT COMPLETO (Todas as redes)
           </button>
         </div>

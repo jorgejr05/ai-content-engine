@@ -3,20 +3,16 @@ import type { FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthProvider';
 import { supabase } from '../config/supabase';
 import { User, Mail, Lock, Save, CheckCircle, AlertCircle } from 'lucide-react';
+import { useNotifications } from '../contexts/NotificationContext';
 
 export default function Profile() {
   const { user } = useAuth();
+  const { addNotification } = useNotifications();
   const [displayName, setDisplayName] = useState(user?.user_metadata?.display_name || '');
   const [newEmail, setNewEmail] = useState(user?.email || '');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const showMessage = (type: 'success' | 'error', text: string) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage(null), 4000);
-  };
 
   const handleUpdateProfile = async (e: FormEvent) => {
     e.preventDefault();
@@ -26,43 +22,43 @@ export default function Profile() {
       data: { display_name: displayName }
     });
 
-    if (error) showMessage('error', error.message);
-    else showMessage('success', 'Nome atualizado com sucesso!');
+    if (error) addNotification('error', error.message);
+    else addNotification('success', 'Nome atualizado com sucesso!');
     setLoading(false);
   };
 
   const handleUpdateEmail = async (e: FormEvent) => {
     e.preventDefault();
     if (newEmail === user?.email) {
-      showMessage('error', 'O email é o mesmo do atual.');
+      addNotification('error', 'O email é o mesmo do atual.');
       return;
     }
     setLoading(true);
 
     const { error } = await supabase.auth.updateUser({ email: newEmail });
 
-    if (error) showMessage('error', error.message);
-    else showMessage('success', 'Email de confirmação enviado para o novo endereço!');
+    if (error) addNotification('error', error.message);
+    else addNotification('success', 'Email de confirmação enviado para o novo endereço!');
     setLoading(false);
   };
 
   const handleUpdatePassword = async (e: FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      showMessage('error', 'As senhas não coincidem.');
+      addNotification('error', 'As senhas não coincidem.');
       return;
     }
     if (newPassword.length < 6) {
-      showMessage('error', 'A senha deve ter pelo menos 6 caracteres.');
+      addNotification('error', 'A senha deve ter pelo menos 6 caracteres.');
       return;
     }
     setLoading(true);
 
     const { error } = await supabase.auth.updateUser({ password: newPassword });
 
-    if (error) showMessage('error', error.message);
+    if (error) addNotification('error', error.message);
     else {
-      showMessage('success', 'Senha atualizada com sucesso!');
+      addNotification('success', 'Senha atualizada com sucesso!');
       setNewPassword('');
       setConfirmPassword('');
     }
@@ -100,20 +96,6 @@ export default function Profile() {
     <div className="animate-fade-in" style={{ maxWidth: '600px' }}>
       <h1>Meu Perfil</h1>
       <p className="text-muted" style={{ marginBottom: '2rem' }}>Gerencie suas informações pessoais e segurança.</p>
-
-      {/* Feedback */}
-      {message && (
-        <div style={{
-          padding: '0.8rem 1rem', borderRadius: '10px', marginBottom: '1.5rem',
-          display: 'flex', alignItems: 'center', gap: '0.7rem', fontSize: '0.85rem',
-          background: message.type === 'success' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-          border: `1px solid ${message.type === 'success' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
-          color: message.type === 'success' ? '#86efac' : '#fca5a5'
-        }}>
-          {message.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-          {message.text}
-        </div>
-      )}
 
       {/* Avatar + Info */}
       <div style={{ ...sectionStyle, display: 'flex', alignItems: 'center', gap: '1.5rem' }}>

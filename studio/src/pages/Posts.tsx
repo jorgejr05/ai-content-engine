@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../config/supabase';
-import { XCircle, FileText, Linkedin, Instagram, Video, ChevronDown, ChevronUp, Sparkles, CheckCircle, Clock } from 'lucide-react';
+import { 
+  XCircle, FileText, Linkedin, Instagram, Video, 
+  ChevronDown, ChevronUp, Sparkles, CheckCircle, Clock 
+} from 'lucide-react';
+import { useNotifications } from '../contexts/NotificationContext';
 
 export default function Posts() {
   const [posts, setPosts] = useState<any[]>([]);
   const [expandedMaster, setExpandedMaster] = useState<string | null>(null);
   const [filter, setFilter] = useState<'pending' | 'published'>('pending');
+  const { addNotification } = useNotifications();
 
   const loadPosts = async () => {
     const { data } = await supabase
@@ -34,13 +39,13 @@ export default function Posts() {
        
        const resData = await response.json();
        if (response.ok && resData.success) {
-          alert('✅ Conteúdo publicado com sucesso!');
+          addNotification('success', 'Conteúdo publicado com sucesso!');
           loadPosts();
        } else {
-          alert(`❌ Erro: ${resData.error}`);
+          addNotification('error', `Erro: ${resData.error}`);
        }
      } catch(e: any) {
-        alert(`❌ Erro ao publicar: ${e.message}`);
+        addNotification('error', `Erro ao publicar: ${e.message}`);
      }
   };
 
@@ -57,19 +62,18 @@ export default function Posts() {
       });
       const data = await response.json();
       if (data.success) {
-        // Atualizar no banco
         const { error } = await supabase
           .from('generated_posts')
           .update({ content_json: data.newContent })
           .eq('id', postId);
         
         if (!error) {
-          alert('✨ Conteúdo refinado pela IA!');
+          addNotification('success', 'Conteúdo refinado pela IA!');
           loadPosts();
         }
       }
     } catch (e) {
-      alert('Erro ao editar com IA.');
+      addNotification('error', 'Erro ao editar com IA.');
     }
   };
 
