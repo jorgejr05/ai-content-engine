@@ -22,6 +22,13 @@ const SUBREDDITS = [
   'artificial'
 ];
 
+const KEYWORDS = ['ai', 'artificial intelligence', 'llm', 'automation', 'business', 'startups', 'agents', 'saas', 'generative', 'chatbot'];
+
+function isRelevant(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  return KEYWORDS.some(keyword => lowerText.includes(keyword));
+}
+
 export async function runSocialListener() {
   console.log('🔍 Iniciando Social Listener (Reddit)...');
   let discussionsSaved = 0;
@@ -36,8 +43,9 @@ export async function runSocialListener() {
       const posts: RedditPost[] = data.data.children;
 
       for (const post of posts) {
-        // Filtro básico de interesse (score mínimo)
-        if (post.data.score < 5) continue;
+        // Filtro de Relevância + Score
+        const combinedText = `${post.data.title} ${post.data.selftext}`;
+        if (!isRelevant(combinedText) || post.data.score < 5) continue;
 
         // Verificar se já existe
         const { data: existing } = await supabase
