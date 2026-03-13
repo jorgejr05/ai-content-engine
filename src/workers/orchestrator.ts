@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { runScraper } from './scraper';
 import { runCurator } from './curator';
 import { runContentGenerator } from './generator';
+import { runSocialListener } from './social_listener';
 
 console.log('🦾 AI Content Engine Orchestrator iniciado!');
 
@@ -10,6 +11,12 @@ console.log('🦾 AI Content Engine Orchestrator iniciado!');
 cron.schedule('0 */4 * * *', async () => {
     console.log(`\n[${new Date().toISOString()}] 🕒 Iniciando ciclo do Scraper...`);
     await runScraper();
+});
+
+// Agendamento: Roda o Social Listener a cada 6 horas
+cron.schedule('0 */6 * * *', async () => {
+    console.log(`\n[${new Date().toISOString()}] 🕒 Iniciando ciclo do Social Listener (Reddit)...`);
+    await runSocialListener();
 });
 
 // Agendamento: Roda o Curador a cada 2 horas
