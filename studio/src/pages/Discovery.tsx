@@ -22,13 +22,12 @@ export default function Discovery() {
       const { data: sData, error: sError } = await supabase
         .from('content_sources')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('published_at', { ascending: false })
         .limit(100);
       
       const { data: iData, error: iError } = await supabase
         .from('content_insights')
         .select('*, content_sources(title)')
-        .order('created_at', { ascending: false })
         .limit(100);
 
       if (sError) throw sError;
@@ -178,7 +177,7 @@ export default function Discovery() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                         <span className="badge badge-purple" style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em' }}>{source.source.toUpperCase()}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
-                            <Calendar size={14} /> {new Date(source.created_at).toLocaleDateString('pt-BR')}
+                            <Calendar size={14} /> {new Date(source.published_at || source.created_at).toLocaleDateString('pt-BR')}
                         </div>
                       </div>
                       <h3 style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 700, lineHeight: 1.4 }}>{source.title}</h3>
