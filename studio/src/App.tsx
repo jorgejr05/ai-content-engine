@@ -1,7 +1,9 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Newspaper, Sparkles, Send } from 'lucide-react';
+import { LayoutDashboard, Newspaper, Sparkles, Send, BrainCircuit } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Posts from './pages/Posts';
+import Sources from './pages/Sources';
+import Insights from './pages/Insights';
 
 function App() {
   const location = useLocation();
@@ -36,7 +38,16 @@ function App() {
             style={{ justifyContent: 'flex-start', padding: '0.8rem 1rem' }}
           >
             <Newspaper size={18} />
-            Coletas (Scraper)
+            Radar (Feeds Brutos)
+          </Link>
+
+          <Link 
+            to="/insights" 
+            className={`btn ${isActive('/insights') ? 'btn-primary' : 'btn-ghost'}`} 
+            style={{ justifyContent: 'flex-start', padding: '0.8rem 1rem' }}
+          >
+            <BrainCircuit size={18} />
+            Insights de Ouro (IA)
           </Link>
 
           <Link 
@@ -54,8 +65,9 @@ function App() {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/coletas" element={<Sources />} />
+          <Route path="/insights" element={<Insights />} />
           <Route path="/posts" element={<Posts />} />
-          <Route path="/coletas" element={<div><h1>Coletas em Tempo Real</h1><p className="text-muted">Lista de itens importados não curados ainda virá aqui.</p></div>} />
         </Routes>
       </main>
     </div>
