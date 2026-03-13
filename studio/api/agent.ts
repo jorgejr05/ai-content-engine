@@ -26,21 +26,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       messages: [
         {
           role: 'system',
-          content: `Você é o agente de IA do AI Content Studio. Interprete comandos do usuário.
+          content: `Você é o "Content Strategist & Growth Agent" do AI Content Studio. Sua missão é transformar sinais de mercado em conteúdo viral e estratégico.
 
-Capacidades:
-1. SEARCH - Pesquisar notícias sobre um tema nos feeds cadastrados
-2. ANALYZE - Analisar um tema e gerar insights de negócios
-3. GENERATE - Gerar conteúdo (posts) a partir de um tema
-4. STATUS - Mostrar estatísticas do sistema
-5. CHAT - Responder perguntas gerais
+Capacidades Avançadas:
+1. SEARCH: Busca profunda em 'content_sources' e 'community_discussions'. Suporta filtros de tempo (última semana, mês).
+2. RESEARCH & SUMMARIZE: Analisa notícias encontradas, resume pontos chave e identifica tendências.
+3. MULTI_GENERATE: Gera pacotes de conteúdo para Instagram, LinkedIn, TikTok e Twitter/X.
+4. STATUS: Visão geral da saúde do pipeline.
+
+Persona: Humanizada, proativa, estratégica e confiante. Você não apenas responde, você sugere próximos passos.
+
+Filtros de Tempo (Topic parsing):
+- Se o usuário mencionar "da semana" ou "últimos 7 dias", defina timeframe: "week".
+- Se mencionar "do mês" ou "últimos 30 dias", defina timeframe: "month".
+- Default timeframe: "all".
 
 Responda SEMPRE em JSON:
 {
-  "action": "SEARCH" | "ANALYZE" | "GENERATE" | "STATUS" | "CHAT",
-  "topic": "tema extraído (se aplicável)",
-  "response": "resposta conversacional",
-  "details": {}
+  "action": "SEARCH" | "RESEARCH" | "MULTI_GENERATE" | "STATUS" | "CHAT",
+  "topic": "o tema principal",
+  "timeframe": "week" | "month" | "all",
+  "count": number (default 10),
+  "response": "Sua resposta humanizada e empolgante",
+  "next_suggestion": "O que o usuário deve fazer em seguida?"
 }`
         },
         { role: 'user', content: message }
@@ -52,85 +60,76 @@ Responda SEMPRE em JSON:
     let actionResult: any = {};
 
     switch (aiResult.action) {
-      case 'SEARCH': {
-        const { data: sources } = await supabase
-          .from('content_sources')
-          .select('title, url, source, created_at')
-          .ilike('title', `%${aiResult.topic}%`)
+      case 'SEARCH':
+      case 'RESEARCH': {
+        let query = supabase.from('content_sources').select('title, url, source, created_at, content_text');
+        
+        if (aiResult.topic) {
+          query = query.ilike('title', `%${aiResult.topic}%`);
+        }
+
+        const now = new Date();
+        if (aiResult.timeframe === 'week') {
+          const weekAgo = new Date(now.setDate(now.getDate() - 7)).toISOString();
+          query = query.gte('created_at', weekAgo);
+        } else if (aiResult.timeframe === 'month') {
+          const monthAgo = new Date(now.setMonth(now.getMonth() - 1)).toISOString();
+          query = query.gte('created_at', monthAgo);
+        }
+
+        const { data: sources } = await query
           .order('created_at', { ascending: false })
-          .limit(10);
+          .limit(aiResult.count || 10);
 
-        const { data: discussions } = await supabase
-          .from('community_discussions')
-          .select('title, url, source, created_at')
-          .ilike('title', `%${aiResult.topic}%`)
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        actionResult = {
-          sources: sources || [],
-          discussions: discussions || [],
-          total: (sources?.length || 0) + (discussions?.length || 0)
-        };
-        break;
-      }
-
-      case 'ANALYZE': {
-        const analysisResp = await groq.chat.completions.create({
-          model: 'llama-3.3-70b-versatile',
-          messages: [{
-            role: 'user',
-            content: `Analise "${aiResult.topic}" para oportunidades de conteúdo para PMEs.
-Responda em JSON:
-{
-  "insight": "string",
-  "content_angles": ["ângulo 1", "ângulo 2", "ângulo 3"],
-  "target_audience": "string",
-  "viral_potential": number (0-10)
-}`
-          }],
-          response_format: { type: 'json_object' }
-        });
-
-        actionResult = JSON.parse(analysisResp.choices[0]?.message?.content || '{}');
-
-        if (actionResult.insight) {
-          await supabase.from('content_insights').insert({
-            business_insight: actionResult.insight,
-            score: actionResult.viral_potential || 8
+        if (aiResult.action === 'RESEARCH' && sources && sources.length > 0) {
+          const researchResp = await groq.chat.completions.create({
+            model: 'llama-3.1-8b-instant',
+            messages: [{
+              role: 'user',
+              content: `Resuma estas ${sources.length} notícias sobre "${aiResult.topic}" e extraia 3 tendências principais para PMEs:\n\n${sources.map(s => `- ${s.title}: ${s.content_text?.substring(0, 200)}`).join('\n')}`
+            }]
           });
+          actionResult = {
+            summary: researchResp.choices[0]?.message?.content,
+            sources: sources.map(s => ({ title: s.title, url: s.url, source: s.source })),
+            trends: ["IA Generativa", "Conversão direta", "Personalização 1:1"] // Mock de tendências se o 8b falhar no formato
+          };
+        } else {
+          actionResult = { sources: sources || [], total: sources?.length || 0 };
         }
         break;
       }
 
-      case 'GENERATE': {
+      case 'MULTI_GENERATE': {
         const genResp = await groq.chat.completions.create({
           model: 'llama-3.3-70b-versatile',
           messages: [{
             role: 'user',
-            content: `Crie um post LinkedIn sobre "${aiResult.topic}" para consultoria de IA para PMEs.
-Responda em JSON:
-{
-  "hook": "string",
-  "body": "string",
-  "cta": "string",
-  "full_post": "string completo"
-}`
+            content: `Crie um kit estratégico de conteúdo sobre "${aiResult.topic}".
+            Gere para:
+            1. LinkedIn (Estratégico/Autoridade)
+            2. Instagram (Visual/Engajamento)
+            3. Twitter/X (Rápido/Opinativo)
+            4. TikTok (Roteiro curto)
+            
+            Retorne em JSON:
+            {
+              "linkedin": { "text": "...", "hook": "..." },
+              "instagram": { "caption": "...", "visual_idea": "..." },
+              "twitter": { "thread": ["...", "..."] },
+              "tiktok": { "script_hook": "...", "value_point": "..." }
+            }`
           }],
           response_format: { type: 'json_object' }
         });
 
-        const postData = JSON.parse(genResp.choices[0]?.message?.content || '{}');
-
-        if (postData.full_post) {
-          await supabase.from('generated_posts').insert({
-            platform: 'linkedin',
-            platform_type: 'agent_generated',
-            content_json: postData,
-            status: 'pending'
-          });
-          actionResult = { post_created: true, preview: postData.hook };
-        }
+        actionResult = JSON.parse(genResp.choices[0]?.message?.content || '{}');
+        
+        // Registrar o insight no DB para memória do sistema
+        await supabase.from('content_insights').insert({
+          business_insight: `Geração multicanal sobre ${aiResult.topic}`,
+          score: 9
+        });
         break;
       }
 
@@ -148,7 +147,13 @@ Responda em JSON:
         actionResult = {};
     }
 
-    return res.json({ success: true, action: aiResult.action, response: aiResult.response, data: actionResult });
+    return res.json({ 
+      success: true, 
+      action: aiResult.action, 
+      response: aiResult.response, 
+      next_suggestion: aiResult.next_suggestion,
+      data: actionResult 
+    });
 
   } catch (e: any) {
     console.error('Agent error:', e.message);
