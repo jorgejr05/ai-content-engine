@@ -22,13 +22,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     // Ações Diretas
     if (action === 'SAVE_TO_CENTRAL') {
-      const { platform, content } = details || {};
+      const { platforms = [], platform, content } = details || {};
+      
+      // Suporte para salvar KIT completo (Bulk Save)
+      if (platforms.length > 0) {
+        const { error } = await supabase.from('generated_posts').insert(
+          platforms.map((p: any) => ({
+            platform: p.id,
+            content_json: p.content,
+            status: 'pending'
+          }))
+        );
+        return res.json({ success: !error });
+      }
+
+      // Suporte para salvamento individual
       const { error } = await supabase.from('generated_posts').insert({
         platform,
         content_json: content,
         status: 'pending'
       });
       return res.json({ success: !error });
+    }
+
+    if (action === 'AI_EDIT') {
+      const { currentContent, instruction } = details || {};
+      const editResp = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{
+          role: 'user',
+          content: `Atue como Editor-Chefe. Refine o conteúdo JSON abaixo seguindo esta instrução: "${instruction}".
+          Mantenha estritamente o mesmo formato de dados (mesmas chaves do JSON).
+          
+          Conteúdo Atual: ${JSON.stringify(currentContent)}
+          
+          Retorne APENAS o JSON do novo conteúdo.`
+        }],
+        response_format: { type: 'json_object' }
+      });
+      return res.json({ success: true, newContent: JSON.parse(editResp.choices[0]?.message?.content || '{}') });
     }
 
     if (action === 'SUBMIT_FEEDBACK') {
@@ -128,13 +160,19 @@ Responda em JSON:
           model: 'llama-3.3-70b-versatile',
           messages: [{
             role: 'user',
-            content: `Geração Estratégica (${strategy}): Crie um kit de conteúdo sobre "${aiResult.topic}".
-            - LinkedIn: Tom de autoridade.
-            - Instagram: Carrossel (5 slides).
-            - TikTok: Roteiro viral.
-            - Twitter: Thread rápida.
+            content: `Flywheel Gen Total (Estratégia: ${strategy}): Crie um kit de conteúdo COMPLETO sobre "${aiResult.topic}".
             
-            Retorne em JSON:
+            Obrigatório gerar para as 4 redes abaixo:
+            1. LinkedIn: Texto analítico de alta autoridade.
+            2. Instagram: Carrossel estratégico com 5 a 7 slides impactantes.
+            3. TikTok: Roteiro com gancho (hook), desenvolvimento e CTA.
+            4. Twitter/X: Thread ou post direto engajador.
+            
+            Cada rede deve ter:
+            - Content (slides array ou text string)
+            - Suggestion (melhor horário, hashtags e por que postar lá).
+            
+            Retorne em JSON estruturado:
             {
               "linkedin": { "text": "...", "suggestion": "..." },
               "instagram": { "slides": ["...", "..."], "suggestion": "..." },

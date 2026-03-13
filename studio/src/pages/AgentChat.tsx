@@ -121,7 +121,14 @@ export default function AgentChat() {
 
   const renderContentPreview = (data: any, action: string) => {
     if (action === 'MULTI_GENERATE') {
-      return <MultiChannelPreview data={data} onSave={(p, c) => handleAction('SAVE_TO_CENTRAL', { platform: p, content: c })} onLike={(p, topic, sample) => handleAction('SUBMIT_FEEDBACK', { platform: p, topic, is_positive: true, sample })} />;
+      return (
+        <MultiChannelPreview 
+          data={data} 
+          onSave={(p, c) => handleAction('SAVE_TO_CENTRAL', { platform: p, content: c })} 
+          onSaveAll={(platforms) => handleAction('SAVE_TO_CENTRAL', { platforms })}
+          onLike={(p, topic, sample) => handleAction('SUBMIT_FEEDBACK', { platform: p, topic, is_positive: true, sample })} 
+        />
+      );
     }
     if (action === 'RESEARCH') {
       return <EditorialReport data={data} />;
@@ -227,7 +234,7 @@ function EditorialReport({ data }: { data: any }) {
   );
 }
 
-function MultiChannelPreview({ data, onSave, onLike }: { data: any, onSave: (p: string, c: any) => void, onLike: (p: string, topic: string, sample: any) => void }) {
+function MultiChannelPreview({ data, onSave, onSaveAll, onLike }: { data: any, onSave: (p: string, c: any) => void, onSaveAll: (platforms: any[]) => void, onLike: (p: string, topic: string, sample: any) => void }) {
   const [activeTab, setActiveTab] = useState('linkedin');
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -239,6 +246,11 @@ function MultiChannelPreview({ data, onSave, onLike }: { data: any, onSave: (p: 
   ];
 
   const content = data[activeTab];
+
+  const handleSaveAll = () => {
+    const platforms = tabs.map(t => ({ id: t.id, content: data[t.id] })).filter(p => p.content);
+    onSaveAll(platforms);
+  };
 
   return (
     <div style={{ marginTop: '1.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '20px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
@@ -272,12 +284,18 @@ function MultiChannelPreview({ data, onSave, onLike }: { data: any, onSave: (p: 
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '0.8rem', marginTop: '1.5rem' }}>
-          <button onClick={() => onSave(activeTab, content)} className="btn-primary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.75rem', borderRadius: '12px' }}>
-            <CheckCircle size={14}/> Sim, pode gerar
-          </button>
-          <button onClick={() => onLike(activeTab, 'Flywheel Gen', content)} className="btn-ghost" style={{ padding: '0.75rem', borderRadius: '12px' }}>
-            <ThumbsUp size={16}/>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.8rem' }}>
+            <button onClick={() => onSave(activeTab, content)} className="btn-primary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.75rem', borderRadius: '12px' }}>
+              <CheckCircle size={14}/> Salvar apenas {activeTab}
+            </button>
+            <button onClick={() => onLike(activeTab, 'Flywheel Gen', content)} className="btn-ghost" style={{ padding: '0.75rem', borderRadius: '12px' }}>
+              <ThumbsUp size={16}/>
+            </button>
+          </div>
+          
+          <button onClick={handleSaveAll} className="btn-secondary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.8rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}>
+            🚀 SALVAR KIT COMPLETO (Todas as redes)
           </button>
         </div>
       </div>
