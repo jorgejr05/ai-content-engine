@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, FormEvent } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import type { FormEvent } from 'react';
 import { Send, Bot, User, Search, Zap, FileText, BarChart3 } from 'lucide-react';
 
 interface Message {
