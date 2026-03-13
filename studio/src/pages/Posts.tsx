@@ -26,7 +26,7 @@ export default function Posts() {
 
   const handlePublish = async (postId: string) => {
      try {
-       const response = await fetch('http://localhost:3001/api/publish', {
+       const response = await fetch('/api/publish', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ postId })

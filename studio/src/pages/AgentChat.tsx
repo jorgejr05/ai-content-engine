@@ -78,7 +78,7 @@ export default function AgentChat() {
     await new Promise(resolve => setTimeout(resolve, 10000));
 
     try {
-      const response = await fetch('http://localhost:3001/api/agent', {
+      const response = await fetch('/api/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text })
