@@ -18,6 +18,28 @@ export default function Posts() {
     loadPosts();
   }, []);
 
+  const handlePublish = async (postId: string) => {
+     try {
+       // Chamamos o backend local (Express) que lida com as credenciais do Buffer
+       const response = await fetch('http://localhost:3001/api/publish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postId })
+       });
+       
+       const resData = await response.json();
+       if (response.ok && resData.success) {
+          alert('✅ Post enviado para o LinkedIn com sucesso!');
+          // Atualizar o frontend removendo da fila
+          setPosts(posts.filter(p => p.id !== postId));
+       } else {
+          alert(`❌ Erro: ${resData.error}`);
+       }
+     } catch(e: any) {
+        alert(`❌ Erro ao comunicar com API local: ${e.message}`);
+     }
+  };
+
   return (
     <div className="animate-fade-in">
       <h1>Revisão de Posts Gerados</h1>
@@ -49,7 +71,7 @@ export default function Posts() {
                   <button className="btn btn-ghost" style={{ color: '#ef4444' }}>
                      <XCircle size={16} /> Descartar
                   </button>
-                  <button className="btn btn-primary">
+                  <button className="btn btn-primary" onClick={() => handlePublish(post.id)}>
                      <CheckCircle size={16} /> Aprovar e Publicar
                   </button>
                </div>
