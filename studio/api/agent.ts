@@ -86,6 +86,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : '';
 
     // 2. Classificação de Intenção (Pipeline Vision)
+    const validHistory = history
+      .filter((m: any) => m && typeof m.text === 'string' && m.text.trim() !== '')
+      .slice(-8)
+      .map((m: any) => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.text
+      }));
+
     const intentResponse = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
@@ -111,7 +119,7 @@ Responda em JSON:
   "next_suggestion": "dica proativa"
 }`
         },
-        ...history.slice(-8).map((m: any) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text })),
+        ...validHistory,
         { role: 'user', content: message }
       ],
       response_format: { type: 'json_object' }

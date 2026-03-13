@@ -86,7 +86,10 @@ export default function AgentChat() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: text,
-          history: messages.slice(-10).map(m => ({ role: m.role, text: m.text }))
+          history: messages
+            .filter(m => !m.isTyping && m.text.trim() !== '')
+            .slice(-10)
+            .map(m => ({ role: m.role, text: m.text }))
         })
       });
       const data = await response.json();
