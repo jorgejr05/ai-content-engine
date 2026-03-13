@@ -8,7 +8,6 @@ export default function Posts() {
 
   useEffect(() => {
     async function loadPosts() {
-      // Carregar todos os posts pendentes
       const { data } = await supabase
          .from('generated_posts')
          .select('*, content_insights(business_insight, content_sources(title), community_discussions(title))')
@@ -20,7 +19,6 @@ export default function Posts() {
     loadPosts();
   }, []);
 
-  // Agrupar posts derivados por Master
   const masterPosts = posts.filter(p => !p.master_post_id);
   const getDerivedPosts = (masterId: string) => posts.filter(p => p.master_post_id === masterId);
 
@@ -44,16 +42,6 @@ export default function Posts() {
      }
   };
 
-  const getPlatformIcon = (platform: string) => {
-    switch (platform) {
-      case 'linkedin': return <Linkedin size={16} />;
-      case 'instagram': return <Instagram size={16} />;
-      case 'video': return <Video size={16} />;
-      case 'blog': return <FileText size={16} />;
-      default: return null;
-    }
-  };
-
   return (
     <div className="animate-fade-in">
       <h1>Central de Conteúdo (Flywheel)</h1>
@@ -65,7 +53,7 @@ export default function Posts() {
         </div>
       ) : (
         <div className="flex-column" style={{ gap: '2rem' }}>
-          {/* 1. Primeiro renderizamos os Pacotes (com master_post_id null e sem ser standalone) */}
+          {/* 1. Pacotes Estruturados (Master/Blog) */}
           {masterPosts.filter(p => p.platform === 'master' || p.platform === 'blog').map(master => {
             const derived = getDerivedPosts(master.id);
             const isExpanded = expandedMaster === master.id;
@@ -86,7 +74,7 @@ export default function Posts() {
                    <div className="flex-between" style={{ marginTop: '1.5rem' }}>
                       <button className="btn btn-ghost" onClick={() => setExpandedMaster(isExpanded ? null : master.id)}>
                         {isExpanded ? <ChevronUp size={20}/> : <ChevronDown size={20}/>} 
-                        {isExpanded ? 'Esconder Derivados' : `Ver ${derived.length} formatos derivados`}
+                        {isExpanded ? 'Esconder Detalhes' : `Ver ${derived.length} formatos curtos`}
                       </button>
                       <button className="btn btn-primary" onClick={() => handlePublish(master.id)}>
                          Aprovar Master
@@ -103,7 +91,7 @@ export default function Posts() {
             );
           })}
 
-          {/* 2. Depois renderizamos os Posts Avulsos (Standalone do Agente) */}
+          {/* 2. Posts Standalone (Gerados pelo Agente) */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
             {posts.filter(p => !p.master_post_id && p.platform !== 'master' && p.platform !== 'blog').map(item => (
               <PostCard key={item.id} item={item} onPublish={handlePublish} />
@@ -129,14 +117,14 @@ function PostCard({ item, onPublish }: { item: any, onPublish: (id: string) => v
   const displayText = item.content_json?.text || item.content_json?.script || item.content_json?.slides?.join('\n\n') || 'Sem conteúdo disponível.';
   
   return (
-    <div className="card flex-column" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '1.5rem' }}>
+    <div className="card flex-column" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '1.5rem', borderRadius: '16px' }}>
        <div className="flex-between" style={{ marginBottom: '1rem' }}>
           <span className="badge badge-purple" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
              {getPlatformIcon(item.platform)} {item.platform.toUpperCase()}
           </span>
        </div>
-       <div style={{ fontSize: '0.85rem', color: '#eee', background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '12px', minHeight: '120px', whiteSpace: 'pre-wrap', border: '1px solid rgba(255,255,255,0.05)' }}>
-           {displayText.length > 500 ? displayText.substring(0, 500) + '...' : displayText}
+       <div style={{ fontSize: '0.85rem', color: '#eee', background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '12px', minHeight: '120px', whiteSpace: 'pre-wrap', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+           {displayText.length > 800 ? displayText.substring(0, 800) + '...' : displayText}
        </div>
 
        {item.content_json?.suggestion && (
@@ -153,9 +141,6 @@ function PostCard({ item, onPublish }: { item: any, onPublish: (id: string) => v
              Aprovar e Postar
           </button>
        </div>
-    </div>
-  );
-}
     </div>
   );
 }
