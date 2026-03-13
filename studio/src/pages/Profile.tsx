@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthProvider';
 import { supabase } from '../config/supabase';
-import { User, Mail, Lock, Save, CheckCircle, AlertCircle } from 'lucide-react';
+import { User, Mail, Lock, Save } from 'lucide-react';
 import { useNotifications } from '../contexts/NotificationContext';
 
 export default function Profile() {
