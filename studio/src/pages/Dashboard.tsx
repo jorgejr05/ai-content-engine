@@ -1,27 +1,35 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../config/supabase';
-import { Activity, Database, Clock } from 'lucide-react';
+import { Activity, Database, Clock, Target, Zap } from 'lucide-react';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
-    totalSources: 0,
-    insightsGenerated: 0,
-    pendingPosts: 0
+    sources: 0,
+    insights: 0,
+    posts: 0,
+    communities: 0,
+    research: 0
   });
 
   useEffect(() => {
-    async function loadStats() {
-      const { count: c1 } = await supabase.from('content_sources').select('*', { count: 'exact', head: true });
-      const { count: c2 } = await supabase.from('content_insights').select('*', { count: 'exact', head: true });
-      const { count: c3 } = await supabase.from('generated_posts').select('*', { count: 'exact', head: true }).eq('status', 'pending');
-      
+    async function fetchStats() {
+      const [{ count: sCount }, { count: iCount }, { count: pCount }, { count: cCount }, { count: rCount }] = await Promise.all([
+        supabase.from('content_sources').select('*', { count: 'exact', head: true }),
+        supabase.from('content_insights').select('*', { count: 'exact', head: true }),
+        supabase.from('generated_posts').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('community_discussions').select('*', { count: 'exact', head: true }),
+        supabase.from('research_topics').select('*', { count: 'exact', head: true })
+      ]);
+
       setStats({
-        totalSources: c1 || 0,
-        insightsGenerated: c2 || 0,
-        pendingPosts: c3 || 0
+        sources: sCount || 0,
+        insights: iCount || 0,
+        posts: pCount || 0,
+        communities: cCount || 0,
+        research: rCount || 0
       });
     }
-    loadStats();
+    fetchStats();
   }, []);
 
   return (
@@ -29,32 +37,32 @@ export default function Dashboard() {
       <h1>Dashboard Central</h1>
       <p className="text-muted" style={{ marginBottom: '2rem' }}>Acompanhe o fluxo da sua máquina de conteúdo.</p>
 
-      <div className="grid-3" style={{ marginBottom: '3rem' }}>
+      <div className="grid-3">
         <div className="card">
           <div className="flex-between">
-            <h3 className="text-muted">Notícias Coletadas</h3>
-            <Database size={20} color="var(--accent-color)" />
+            <span className="text-muted">Radares Ativos</span>
+            <Target className="text-purple" size={20} />
           </div>
-          <h2 style={{ fontSize: '2.5rem', marginTop: '1rem' }}>{stats.totalSources}</h2>
-          <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>Pelo Scraper</p>
+          <h2 style={{ fontSize: '2.5rem', margin: '1rem 0' }}>{stats.sources + stats.communities}</h2>
+          <p className="text-muted" style={{ fontSize: '0.9rem' }}>{stats.sources} RSS + {stats.communities} Reddit</p>
         </div>
 
         <div className="card">
           <div className="flex-between">
-            <h3 className="text-muted">Insights (Alto Valor)</h3>
-            <Activity size={20} color="#34d399" />
+            <span className="text-muted">Cérebro IA</span>
+            <Zap className="text-purple" size={20} />
           </div>
-          <h2 style={{ fontSize: '2.5rem', marginTop: '1rem' }}>{stats.insightsGenerated}</h2>
-          <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>Aprovados pelo Groq (Score &gt; 7)</p>
+          <h2 style={{ fontSize: '2.5rem', margin: '1rem 0' }}>{stats.insights}</h2>
+          <p className="text-muted" style={{ fontSize: '0.9rem' }}>{stats.research} Pesquisas Ativas</p>
         </div>
 
         <div className="card">
           <div className="flex-between">
-            <h3 className="text-muted">Posts na Fila</h3>
-            <Clock size={20} color="#fbbf24" />
+            <span className="text-muted">Fila Flywheel</span>
+            <Clock className="text-purple" size={20} />
           </div>
-          <h2 style={{ fontSize: '2.5rem', marginTop: '1rem' }}>{stats.pendingPosts}</h2>
-          <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>Aguardando aprovação</p>
+          <h2 style={{ fontSize: '2.5rem', margin: '1rem 0' }}>{stats.posts}</h2>
+          <p className="text-muted" style={{ fontSize: '0.9rem' }}>Formatos Multimídia Pendentes</p>
         </div>
       </div>
 
