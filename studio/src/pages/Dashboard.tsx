@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../config/supabase';
-import { Activity, Database, CheckCircle, Clock } from 'lucide-react';
+import { Activity, Database, Clock } from 'lucide-react';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
