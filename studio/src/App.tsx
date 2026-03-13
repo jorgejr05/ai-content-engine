@@ -1,5 +1,5 @@
-import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Newspaper, Sparkles, Target, Zap, FileText, Clock } from 'lucide-react';
+import { Routes, Route, NavLink } from 'react-router-dom';
+import { LayoutDashboard, Sparkles, Target, Zap, FileText, Clock } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Posts from './pages/Posts';
 import Sources from './pages/Sources';
@@ -7,7 +7,6 @@ import Insights from './pages/Insights';
 import Blog from './pages/Blog';
 
 function App() {
-  const location = useLocation();
 
   return (
     <div className="app-container">

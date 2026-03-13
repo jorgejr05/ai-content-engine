@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../config/supabase';
-import { CheckCircle, XCircle, FileText, Linkedin, Instagram, Video, ChevronDown, ChevronUp } from 'lucide-react';
+import { XCircle, FileText, Linkedin, Instagram, Video, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function Posts() {
   const [posts, setPosts] = useState<any[]>([]);
