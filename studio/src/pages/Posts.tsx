@@ -77,6 +77,24 @@ export default function Posts() {
     }
   };
 
+  const handleDelete = async (postId: string) => {
+    if (!confirm('Tem certeza que deseja apagar este post permanentemente?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('generated_posts')
+        .delete()
+        .eq('id', postId);
+
+      if (error) throw error;
+
+      addNotification('success', 'Post removido com sucesso.');
+      loadPosts();
+    } catch (e: any) {
+      addNotification('error', `Erro ao deletar: ${e.message}`);
+    }
+  };
+
   return (
     <div className="animate-fade-in">
       <div className="flex-between" style={{ marginBottom: '2rem' }}>
@@ -126,14 +144,19 @@ export default function Posts() {
                         {isExpanded ? <ChevronUp size={20}/> : <ChevronDown size={20}/>} 
                         {isExpanded ? 'Ocultar Canais' : `Ver ${derived.length} Canais Gerados`}
                       </button>
-                      {filter === 'pending' && (
-                        <button className="btn btn-primary" onClick={() => handlePublish(master.id)}>Publicar Master</button>
-                      )}
+                      <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        {filter === 'pending' && (
+                          <>
+                            <button className="btn btn-ghost" style={{ color: '#ef4444' }} onClick={() => handleDelete(master.id)}><XCircle size={18} /></button>
+                            <button className="btn btn-primary" onClick={() => handlePublish(master.id)}>Publicar Master</button>
+                          </>
+                        )}
+                      </div>
                    </div>
                 </div>
                 {isExpanded && (
                   <div style={{ padding: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem', background: 'rgba(0,0,0,0.2)' }}>
-                    {derived.map(item => <PostCard key={item.id} item={item} onPublish={handlePublish} onAIEdit={handleAIEdit} isReadOnly={filter === 'published'} />)}
+                    {derived.map(item => <PostCard key={item.id} item={item} onPublish={handlePublish} onAIEdit={handleAIEdit} onDelete={handleDelete} isReadOnly={filter === 'published'} />)}
                   </div>
                 )}
               </div>
@@ -143,7 +166,7 @@ export default function Posts() {
           {/* Posts Individuais/Avulsos */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
             {posts.filter(p => !p.master_post_id && p.platform !== 'master' && p.platform !== 'blog').map(item => (
-              <PostCard key={item.id} item={item} onPublish={handlePublish} onAIEdit={handleAIEdit} isReadOnly={filter === 'published'} />
+              <PostCard key={item.id} item={item} onPublish={handlePublish} onAIEdit={handleAIEdit} onDelete={handleDelete} isReadOnly={filter === 'published'} />
             ))}
           </div>
         </div>
@@ -152,7 +175,7 @@ export default function Posts() {
   );
 }
 
-function PostCard({ item, onPublish, onAIEdit, isReadOnly }: { item: any, onPublish: (id: string) => void, onAIEdit: (id: string, content: any, inst: string) => void, isReadOnly: boolean }) {
+function PostCard({ item, onPublish, onAIEdit, onDelete, isReadOnly }: { item: any, onPublish: (id: string) => void, onAIEdit: (id: string, content: any, inst: string) => void, onDelete: (id: string) => void, isReadOnly: boolean }) {
   const [isEditing, setIsEditing] = useState(false);
   const [instruction, setInstruction] = useState('');
 
@@ -205,7 +228,7 @@ function PostCard({ item, onPublish, onAIEdit, isReadOnly }: { item: any, onPubl
            )}
 
            <div className="flex-between">
-              <button className="btn btn-ghost" style={{ color: '#ef4444' }}><XCircle size={18} /></button>
+              <button className="btn btn-ghost" style={{ color: '#ef4444' }} onClick={() => onDelete(item.id)}><XCircle size={18} /></button>
               <button className="btn btn-primary" onClick={() => onPublish(item.id)}>Aprovar e Postar</button>
            </div>
          </>
