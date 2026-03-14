@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import Home from './pages/Home';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
+import Home from './pages/Home.tsx';
+import Blog from './pages/Blog.tsx';
+import BlogPost from './pages/BlogPost.tsx';
 import { Bot, Zap } from 'lucide-react';
 
 function App() {

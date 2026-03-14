@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "name": "ai-content-engine-hub",
+  "builds": [
+    {
+      "src": "site/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    },
+    {
+      "src": "studio/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    },
+    {
+      "src": "studio/api/*.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/studio/api/:path*"
+    },
+    {
+      "source": "/app/:path*",
+      "destination": "/studio/:path*"
+    },
+    {
+      "source": "/app",
+      "destination": "/studio/index.html"
+    },
+    {
+      "source": "/(blog.*)",
+      "destination": "/site/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/site/$1"
+    }
+  ]
+}
