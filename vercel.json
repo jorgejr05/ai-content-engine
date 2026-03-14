@@ -1,25 +1,8 @@
 {
   "version": 2,
   "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    },
-    {
-      "source": "/app/(.*\\.[a-z0-9]+)$",
-      "destination": "/app/$1"
-    },
-    {
-      "source": "/app/(.*)",
-      "destination": "/app/index.html"
-    },
-    {
-      "source": "/(.*\\.[a-z0-9]+)$",
-      "destination": "/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/app/(.*)", "destination": "/app/index.html" },
+    { "source": "/((?!app|api).*)", "destination": "/index.html" }
   ]
 }

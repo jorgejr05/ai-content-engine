@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "cd site && npm install && npm run build && cd ../studio && npm install && npm run build && mkdir -p ../site/dist/app && cp -rv dist/* ../site/dist/app/",
+    "build": "rm -rf dist && mkdir -p dist/app && cd site && npm install && npm run build && cp -rv dist/* ../dist/ && cd ../studio && npm install && npm run build && cp -rv dist/* ../dist/app/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
