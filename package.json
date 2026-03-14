@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "npm run build:site && npm run build:studio",
-    "build:site": "cd site && npm run build",
-    "build:studio": "cd studio && npm run build",
+    "build": "npm run build:site && npm run build:studio && npm run consolidate",
+    "build:site": "cd site && npm install && npm run build",
+    "build:studio": "cd studio && npm install && npm run build",
+    "consolidate": "mkdir -p out/app && cp -rv site/dist/* out/ && cp -rv studio/dist/* out/app/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

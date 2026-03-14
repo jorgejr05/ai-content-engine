@@ -1,50 +1,21 @@
 {
   "version": 2,
-  "name": "ai-content-engine-total",
-  "builds": [
-    {
-      "src": "site/package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
-    },
-    {
-      "src": "studio/package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
-    },
-    {
-      "src": "studio/api/*.ts",
-      "use": "@vercel/node"
-    }
-  ],
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/studio/api/:path*"
+      "source": "/app/(.*)",
+      "destination": "/app/index.html"
     },
     {
-      "source": "/app/:path*",
-      "destination": "/studio/:path*"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     },
     {
-      "source": "/app",
-      "destination": "/studio/index.html"
+      "source": "/blog/(.*)",
+      "destination": "/blog/$1"
     },
     {
-      "source": "/(blog.*)",
-      "destination": "/site/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/site/$1"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/app/assets/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
+      "source": "/((?!app|api).*)",
+      "destination": "/$1"
     }
   ]
 }
