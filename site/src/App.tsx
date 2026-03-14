@@ -23,9 +23,9 @@ function App() {
               <Link to="/blog" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontWeight: 600 }}>Blog</Link>
             </nav>
 
-            <a href="http://localhost:5173" className="btn-premium" style={{ fontSize: '0.9rem', padding: '0.75rem 1.5rem' }}>
+            <Link to="/app" className="btn-premium" style={{ fontSize: '0.9rem', padding: '0.75rem 1.5rem', textDecoration: 'none' }}>
               Entrar no Studio <Zap size={16} fill="white" />
-            </a>
+            </Link>
           </header>
 
           <Routes>

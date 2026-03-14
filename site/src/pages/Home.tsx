@@ -25,9 +25,9 @@ export default function Home() {
         </p>
 
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-          <a href="http://localhost:5173" className="btn-premium" style={{ height: '60px', padding: '0 3rem', fontSize: '1.1rem' }}>
+          <Link to="/app" className="btn-premium" style={{ height: '60px', padding: '0 3rem', fontSize: '1.1rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             Começar Grátis <ArrowRight />
-          </a>
+          </Link>
           <Link to="/blog" className="glass" style={{ height: '60px', padding: '0 3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', textDecoration: 'none', fontWeight: 600 }}>
              Ver Blog
           </Link>
