@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Send, Bot, Loader, Trash2, ThumbsUp, CheckCircle, 
-  ChevronLeft, ChevronRight, TrendingUp, Target 
+  ChevronLeft, ChevronRight, TrendingUp, Target, RefreshCw
 } from 'lucide-react';
 import { useNotifications } from '../contexts/NotificationContext';
+import { supabase } from '../config/supabase';
+import ConfirmModal from '../components/ConfirmModal';
 
 interface Message {
   id: string;
@@ -18,25 +20,56 @@ interface Message {
 
 export default function AgentChat() {
   const { addNotification } = useNotifications();
-  const [messages, setMessages] = useState<Message[]>(() => {
-    const saved = localStorage.getItem('chat_history');
-    if (saved) {
-      return JSON.parse(saved).map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) }));
-    }
-    return [{
-      id: '0',
-      role: 'agent',
-      text: 'Olá! Sou seu Editor-Chefe & Growth Strategist. 🧠\n\nEu comando o seu Pipeline Editorial: **Busca -> Insights -> Viral Score -> Geração Multicanal**.\n\nO que vamos dominar hoje?',
-      timestamp: new Date()
-    }];
-  });
-  
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loadingInitial, setLoadingInitial] = useState(true);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [input, setInput] = useState('');
   const [typingStatus, setTypingStatus] = useState('Analisando seu pedido...');
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Carregar histórico do Supabase
+  const loadChatHistory = useCallback(async () => {
+    setLoadingInitial(true);
+    try {
+      const { data, error } = await supabase
+        .from('agent_messages')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const formatted = data.map(m => ({
+          id: m.id,
+          role: m.role as 'user' | 'agent',
+          text: m.content,
+          action: m.action,
+          data: m.data,
+          next_suggestion: m.next_suggestion,
+          timestamp: new Date(m.created_at)
+        }));
+        setMessages(formatted);
+      } else {
+        // Mensagem inicial se o banco estiver vazio
+        setMessages([{
+          id: 'initial',
+          role: 'agent',
+          text: 'Olá! Sou seu Editor-Chefe & Growth Strategist. 🧠\n\nEu comando o seu Pipeline Editorial: **Busca -> Insights -> Viral Score -> Geração Multicanal**.\n\nO que vamos dominar hoje?',
+          timestamp: new Date()
+        }]);
+      }
+    } catch (e: any) {
+      console.error('Erro ao carregar chat:', e);
+      addNotification('error', 'Erro ao carregar histórico de conversas.');
+    }
+    setLoadingInitial(false);
+  }, [addNotification]);
+
   useEffect(() => {
-    localStorage.setItem('chat_history', JSON.stringify(messages));
+    loadChatHistory();
+  }, [loadChatHistory]);
+
+  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -48,9 +81,11 @@ export default function AgentChat() {
     }
   }, []);
 
-  const clearChat = () => {
-    // Usando o confirm nativo por enquanto, mas o resultado será via Toast
-    if (confirm('Deseja limpar todo o histórico da conversa?')) {
+  const clearChat = async () => {
+    try {
+      const { error } = await supabase.from('agent_messages').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+      if (error) throw error;
+
       const initialMsg: Message = {
         id: Date.now().toString(),
         role: 'agent',
@@ -58,8 +93,9 @@ export default function AgentChat() {
         timestamp: new Date()
       };
       setMessages([initialMsg]);
-      localStorage.removeItem('chat_history');
-      addNotification('info', 'Histórico de conversa removido.');
+      addNotification('success', 'Histórico de conversa removido permanentemente.');
+    } catch (e: any) {
+      addNotification('error', 'Erro ao limpar histórico no banco.');
     }
   };
 
@@ -79,9 +115,26 @@ export default function AgentChat() {
     setMessages(prev => prev.map(m => m.id === typingId ? response : m));
   }, []);
 
+  const saveMessageToDb = async (msg: Message) => {
+    try {
+      await supabase.from('agent_messages').insert({
+        id: msg.id.includes('typing') ? undefined : msg.id,
+        role: msg.role,
+        content: msg.text,
+        action: msg.action,
+        data: msg.data,
+        next_suggestion: msg.next_suggestion,
+        created_at: msg.timestamp.toISOString()
+      });
+    } catch (e) {
+      console.error('Erro ao persistir mensagem:', e);
+    }
+  };
+
   const sendToAgent = useCallback(async (text: string) => {
     const userMsg: Message = { id: Date.now().toString(), role: 'user', text, timestamp: new Date() };
     setMessages(prev => [...prev, userMsg]);
+    saveMessageToDb(userMsg);
 
     const typingId = addTypingMessage();
     const statuses = ["Buscando tendências...", "Analisando Viral Score...", "Extraindo Insights de Negócio...", "Planejando Conteúdo...", "Formatando Pipeline..."];
@@ -112,7 +165,9 @@ export default function AgentChat() {
         next_suggestion: data.next_suggestion,
         timestamp: new Date()
       };
+      
       replaceTypingWithResponse(typingId, agentMsg);
+      saveMessageToDb(agentMsg);
       setTypingStatus('Analisando seu pedido...');
     } catch {
       clearInterval(interval);
@@ -163,8 +218,27 @@ export default function AgentChat() {
     return null;
   };
 
+  if (loadingInitial) {
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
+         <Bot size={48} className="animate-pulse" color="var(--accent-color)" />
+         <p className="text-muted" style={{ marginTop: '1rem' }}>Sincronizando pipeline editorial...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="animate-fade-in chat-page-container">
+      <ConfirmModal 
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={clearChat}
+        title="Limpar Conversa"
+        message="Tem certeza que deseja apagar todo o histórico de conversas permanentemente do banco de dados?"
+        confirmText="Limpar agora"
+        type="danger"
+      />
+
       <header style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div style={{ width: '50px', height: '50px', borderRadius: '16px', background: 'linear-gradient(135deg, var(--accent-color), #ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 16px -4px rgba(236, 72, 153, 0.4)' }}>
@@ -178,9 +252,14 @@ export default function AgentChat() {
             </div>
           </div>
         </div>
-        <button onClick={clearChat} className="btn-ghost" style={{ color: '#ef4444' }} title="Limpar conversa">
-          <Trash2 size={20} />
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button onClick={loadChatHistory} className="btn-ghost" title="Sincronizar">
+            <RefreshCw size={18} />
+          </button>
+          <button onClick={() => setIsConfirmOpen(true)} className="btn-ghost" style={{ color: '#ef4444' }} title="Limpar conversa">
+            <Trash2 size={20} />
+          </button>
+        </div>
       </header>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', background: 'rgba(255,255,255,0.01)', borderRadius: '24px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1.2rem', scrollbarWidth: 'none' }}>
