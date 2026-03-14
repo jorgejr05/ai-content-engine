@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Send, Bot, Loader, Trash2, ThumbsUp, CheckCircle, 
-  ChevronLeft, ChevronRight, TrendingUp, Target, RefreshCw
+  ChevronLeft, ChevronRight, TrendingUp, Target, RefreshCw, Globe
 } from 'lucide-react';
 import { useNotifications } from '../contexts/NotificationContext';
 import { supabase } from '../config/supabase';
@@ -192,6 +192,8 @@ export default function AgentChat() {
       if (data.success) {
         if (action === 'SAVE_TO_CENTRAL') {
           addNotification('success', 'Kit de conteúdo salvo na Central!');
+        } else if (action === 'PUBLISH_TO_BLOG') {
+          addNotification('success', 'Post publicado no Blog Público com sucesso!');
         } else {
           addNotification('success', 'Feedback registrado no aprendizado da IA.');
         }
@@ -400,8 +402,16 @@ function MultiChannelPreview({ data, onSave, onSaveAll, onLike }: { data: any, o
             </button>
           </div>
           
-          <button onClick={handleSaveAll} className="btn-secondary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.8rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer' }}>
+          <button onClick={handleSaveAll} className="btn-secondary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.8rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', marginBottom: '0.8rem' }}>
             🚀 SALVAR KIT COMPLETO (Todas as redes)
+          </button>
+
+          <button 
+            onClick={() => onSave('blog', content)} 
+            className="btn-secondary" 
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.8rem', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', color: '#60a5fa', cursor: 'pointer' }}
+          >
+            <Globe size={16}/> PUBLICAR NO BLOG PÚBLICO (SEO)
           </button>
         </div>
       </div>

@@ -45,6 +45,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.json({ success: !error });
     }
 
+    if (action === 'PUBLISH_TO_BLOG') {
+      const { platform, content } = details || {};
+      
+      // 1. Pedir à IA para transformar post social em Artigo de Blog com SEO
+      const blogResp = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{
+          role: 'user',
+          content: `Atue como Especialista em SEO e Copywriting. 
+          Transforme este conteúdo de ${platform} em um ARTIGO DE BLOG profissional.
+          
+          Conteúdo Original: ${JSON.stringify(content)}
+          
+          Retorne em JSON:
+          {
+            "title": "Título H1 matador",
+            "slug": "slug-amigavel-separado-por-hifens",
+            "content": "Conteúdo HTML formatado (use <p>, <h2>, <strong>, <ul>, <li>)",
+            "excerpt": "Resumo para SEO (máx 160 chars)",
+            "meta_title": "Título para Google (máx 60 chars)",
+            "meta_description": "Meta description persuasiva",
+            "tags": ["tag1", "tag2"]
+          }`
+        }],
+        response_format: { type: 'json_object' }
+      });
+
+      const blogData = JSON.parse(blogResp.choices[0]?.message?.content || '{}');
+
+      // 2. Salvar na tabela blog_posts
+      const { error } = await supabase.from('blog_posts').insert({
+        title: blogData.title,
+        slug: blogData.slug + '-' + Math.random().toString(36).substring(2, 5), // Garantir unicidade
+        content: blogData.content,
+        excerpt: blogData.excerpt,
+        meta_title: blogData.meta_title,
+        meta_description: blogData.meta_description,
+        tags: blogData.tags,
+        author: 'Squad IA'
+      });
+
+      return res.json({ success: !error });
+    }
+
     if (action === 'AI_EDIT') {
       const { currentContent, instruction } = details || {};
       const editResp = await groq.chat.completions.create({
